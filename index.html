@@ -148,6 +148,12 @@
   .receipt-total .tv{ font-family:var(--font-mono); font-size:28px; font-weight:700; color:#FFD9A0; }
   .receipt-due{ font-size:12px; color:var(--ink-soft); margin-top:10px; text-align:right; }
 
+  .storage-warning{
+    background:#FBEAE8; border:1px solid #EFC3BF; color:#8A2E28; border-radius:10px;
+    padding:12px 16px; font-size:13px; margin-bottom:16px; line-height:1.5;
+  }
+  .storage-warning b{ display:block; margin-bottom:3px; }
+
   .empty{ text-align:center; padding:30px 10px; color:var(--ink-soft); font-size:13.5px; }
   .loading{ text-align:center; padding:40px 10px; color:var(--ink-soft); }
 
@@ -181,6 +187,8 @@
     </div>
     <input class="periodo no-print" id="periodoInput" type="text" placeholder="Periodo actual, ej. 01 MAYO AL 30 JUNIO 2026">
   </div>
+
+  <div id="storageWarning"></div>
 
   <div class="tabs no-print">
     <button class="tab-btn active" data-tab="nuevo">Nuevo Recibo</button>
@@ -273,14 +281,24 @@
   }
 
   const DATA_KEY = 'agua-app-data-v2';
+  let lastStorageError = '';
 
   function wait(ms){ return new Promise(r=>setTimeout(r, ms)); }
 
-  async function safeGet(key, shared){
+  async function safeGet(key, shared, attempt){
+    attempt = attempt || 1;
     try{
       const r = await window.storage.get(key, !!shared);
       return r ? r.value : null;
-    }catch(e){ return null; }
+    }catch(e){
+      lastStorageError = (e && e.message) ? e.message : String(e);
+      console.error('safeGet falló (intento ' + attempt + '):', e);
+      if (attempt < 3){
+        await wait(attempt * 500);
+        return safeGet(key, shared, attempt + 1);
+      }
+      return null;
+    }
   }
   async function safeSet(key, value, shared, attempt){
     attempt = attempt || 1;
@@ -290,6 +308,7 @@
       if (r) return true;
       throw new Error('storage.set devolvió vacío');
     }catch(e){
+      lastStorageError = (e && e.message) ? e.message : String(e);
       console.error('safeSet falló (intento ' + attempt + '):', e);
       if (attempt < 3){
         await wait(attempt * 500);
@@ -771,7 +790,10 @@
       document.getElementById('receiptWrap').innerHTML = renderReceipt(state.lastReceipt);
       bindReceiptEvents();
     } else {
-      msgEl.innerHTML = `<div class="msg err">No se pudo guardar después de varios intentos. Revisa tu conexión a internet y presiona "Guardar" de nuevo — tus datos capturados siguen aquí, no se perdieron.</div>`;
+      const motivo = storageDisponible
+        ? 'Revisa tu conexión a internet y presiona "Guardar" de nuevo — tus datos capturados siguen aquí, no se perdieron.'
+        : 'Esta vista no tiene acceso al guardado permanente (mira el aviso arriba). Abre este archivo dentro del panel de Claude para poder guardar los recibos.';
+      msgEl.innerHTML = `<div class="msg err">No se pudo guardar. ${motivo}${lastStorageError ? `<br><span style="opacity:.7; font-family:var(--font-mono); font-size:11px;">Detalle técnico: ${esc(lastStorageError)}</span>` : ''}</div>`;
     }
   }
 
@@ -893,7 +915,44 @@
     document.getElementById('plazaNombre').textContent = state.config.nombrePlaza || 'Plaza Manitoba II';
   }
 
+  let storageDisponible = true;
+
+  async function checarStorage(){
+    if (typeof window.storage === 'undefined' || !window.storage){
+      storageDisponible = false;
+      lastStorageError = 'window.storage no existe en esta vista';
+    } else {
+      // Prueba real de escritura/lectura para detectar fallas silenciosas del entorno.
+      const testKey = '__storage_test__';
+      const testVal = String(Date.now());
+      try{
+        const setRes = await window.storage.set(testKey, testVal, false);
+        if (!setRes){
+          storageDisponible = false;
+          lastStorageError = 'storage.set devolvió vacío en la prueba inicial';
+        } else {
+          const getRes = await window.storage.get(testKey, false);
+          storageDisponible = !!(getRes && getRes.value === testVal);
+          if (!storageDisponible) lastStorageError = 'storage.get no devolvió el valor esperado en la prueba inicial';
+        }
+      }catch(e){
+        lastStorageError = (e && e.message) ? e.message : String(e);
+        console.error('Prueba de almacenamiento falló:', e);
+        storageDisponible = false;
+      }
+    }
+    if (!storageDisponible){
+      document.getElementById('storageWarning').innerHTML = `
+        <div class="storage-warning">
+          <b>El guardado permanente no está disponible en esta vista ahora mismo.</b>
+          Puedes seguir capturando y calculando recibos normalmente, pero no se guardarán al recargar la página hasta que esto se resuelva.
+          ${lastStorageError ? `<br><span style="opacity:.7; font-family:var(--font-mono); font-size:11px;">Detalle técnico: ${lastStorageError.replace(/[<>]/g,'')}</span>` : ''}
+        </div>`;
+    }
+  }
+
   async function init(){
+    await checarStorage();
     await loadAll();
     document.getElementById('loading').style.display = 'none';
     document.getElementById('content').style.display = '';
