@@ -153,6 +153,10 @@
     padding:12px 16px; font-size:13px; margin-bottom:16px; line-height:1.5;
   }
   .storage-warning b{ display:block; margin-bottom:3px; }
+  .storage-info{
+    background:#E7F1F4; border:1px solid #C4DEE5; color:#255A68; border-radius:10px;
+    padding:10px 16px; font-size:12.5px; margin-bottom:16px; line-height:1.5;
+  }
 
   .empty{ text-align:center; padding:30px 10px; color:var(--ink-soft); font-size:13.5px; }
   .loading{ text-align:center; padding:40px 10px; color:var(--ink-soft); }
@@ -282,10 +286,25 @@
 
   const DATA_KEY = 'agua-app-data-v2';
   let lastStorageError = '';
+  let storageBackend = 'claude'; // 'claude' | 'local' | 'none' — se decide en checarStorage()
 
   function wait(ms){ return new Promise(r=>setTimeout(r, ms)); }
 
+  function lsAvailable(){
+    try{
+      const k = '__ls_test__';
+      window.localStorage.setItem(k, '1');
+      window.localStorage.removeItem(k);
+      return true;
+    }catch(e){ return false; }
+  }
+
   async function safeGet(key, shared, attempt){
+    if (storageBackend === 'local'){
+      try{ return window.localStorage.getItem(key); }
+      catch(e){ lastStorageError = (e && e.message) ? e.message : String(e); return null; }
+    }
+    if (storageBackend === 'none') return null;
     attempt = attempt || 1;
     try{
       const r = await window.storage.get(key, !!shared);
@@ -301,9 +320,14 @@
     }
   }
   async function safeSet(key, value, shared, attempt){
+    const v = typeof value === 'string' ? value : JSON.stringify(value);
+    if (storageBackend === 'local'){
+      try{ window.localStorage.setItem(key, v); return true; }
+      catch(e){ lastStorageError = (e && e.message) ? e.message : String(e); return false; }
+    }
+    if (storageBackend === 'none') return false;
     attempt = attempt || 1;
     try{
-      const v = typeof value === 'string' ? value : JSON.stringify(value);
       const r = await window.storage.set(key, v, !!shared);
       if (r) return true;
       throw new Error('storage.set devolvió vacío');
@@ -918,37 +942,49 @@
   let storageDisponible = true;
 
   async function checarStorage(){
-    if (typeof window.storage === 'undefined' || !window.storage){
-      storageDisponible = false;
-      lastStorageError = 'window.storage no existe en esta vista';
-    } else {
-      // Prueba real de escritura/lectura para detectar fallas silenciosas del entorno.
+    let claudeOk = false;
+    if (typeof window.storage !== 'undefined' && window.storage){
       const testKey = '__storage_test__';
       const testVal = String(Date.now());
       try{
         const setRes = await window.storage.set(testKey, testVal, false);
-        if (!setRes){
-          storageDisponible = false;
-          lastStorageError = 'storage.set devolvió vacío en la prueba inicial';
-        } else {
+        if (setRes){
           const getRes = await window.storage.get(testKey, false);
-          storageDisponible = !!(getRes && getRes.value === testVal);
-          if (!storageDisponible) lastStorageError = 'storage.get no devolvió el valor esperado en la prueba inicial';
+          claudeOk = !!(getRes && getRes.value === testVal);
         }
       }catch(e){
         lastStorageError = (e && e.message) ? e.message : String(e);
-        console.error('Prueba de almacenamiento falló:', e);
-        storageDisponible = false;
+        console.error('Prueba de almacenamiento de Claude falló:', e);
       }
     }
-    if (!storageDisponible){
-      document.getElementById('storageWarning').innerHTML = `
-        <div class="storage-warning">
-          <b>El guardado permanente no está disponible en esta vista ahora mismo.</b>
-          Puedes seguir capturando y calculando recibos normalmente, pero no se guardarán al recargar la página hasta que esto se resuelva.
-          ${lastStorageError ? `<br><span style="opacity:.7; font-family:var(--font-mono); font-size:11px;">Detalle técnico: ${lastStorageError.replace(/[<>]/g,'')}</span>` : ''}
-        </div>`;
+
+    if (claudeOk){
+      storageBackend = 'claude';
+      storageDisponible = true;
+      return;
     }
+
+    // No estamos dentro del entorno de Claude (por ejemplo, exportado a GitHub/Vercel):
+    // usamos el almacenamiento local del navegador como respaldo automático.
+    if (lsAvailable()){
+      storageBackend = 'local';
+      storageDisponible = true;
+      document.getElementById('storageWarning').innerHTML = `
+        <div class="storage-info">
+          Guardando en el almacenamiento de este navegador. Los recibos que captures aquí quedarán guardados en este mismo navegador y dispositivo;
+          si abres la app en otro navegador o computadora, no verás estos mismos datos ahí.
+        </div>`;
+      return;
+    }
+
+    storageBackend = 'none';
+    storageDisponible = false;
+    document.getElementById('storageWarning').innerHTML = `
+      <div class="storage-warning">
+        <b>El guardado permanente no está disponible en esta vista ahora mismo.</b>
+        Puedes seguir capturando y calculando recibos normalmente, pero no se guardarán al recargar la página hasta que esto se resuelva.
+        ${lastStorageError ? `<br><span style="opacity:.7; font-family:var(--font-mono); font-size:11px;">Detalle técnico: ${lastStorageError.replace(/[<>]/g,'')}</span>` : ''}
+      </div>`;
   }
 
   async function init(){
