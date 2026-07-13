@@ -274,18 +274,29 @@
 
   const DATA_KEY = 'agua-app-data-v2';
 
+  function wait(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
   async function safeGet(key, shared){
     try{
       const r = await window.storage.get(key, !!shared);
       return r ? r.value : null;
     }catch(e){ return null; }
   }
-  async function safeSet(key, value, shared){
+  async function safeSet(key, value, shared, attempt){
+    attempt = attempt || 1;
     try{
       const v = typeof value === 'string' ? value : JSON.stringify(value);
       const r = await window.storage.set(key, v, !!shared);
-      return !!r;
-    }catch(e){ return false; }
+      if (r) return true;
+      throw new Error('storage.set devolvió vacío');
+    }catch(e){
+      console.error('safeSet falló (intento ' + attempt + '):', e);
+      if (attempt < 3){
+        await wait(attempt * 500);
+        return safeSet(key, value, shared, attempt + 1);
+      }
+      return false;
+    }
   }
 
   function buildSeedState(){
@@ -760,7 +771,7 @@
       document.getElementById('receiptWrap').innerHTML = renderReceipt(state.lastReceipt);
       bindReceiptEvents();
     } else {
-      msgEl.innerHTML = `<div class="msg err">No se pudo guardar. Intenta de nuevo.</div>`;
+      msgEl.innerHTML = `<div class="msg err">No se pudo guardar después de varios intentos. Revisa tu conexión a internet y presiona "Guardar" de nuevo — tus datos capturados siguen aquí, no se perdieron.</div>`;
     }
   }
 
