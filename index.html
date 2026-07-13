@@ -196,9 +196,6 @@
 
 <script>
 (function(){
-  const LOCAL_STORAGE_KEY = 'locales-index';
-  const CONFIG_KEY = 'plaza-config';
-
   const SEED = [
     {"numero":"48","fecha":"2026-05-01","lecturaActual":1188,"lecturaAnterior":1176,"precioM3":30},
     {"numero":"49","fecha":"2026-05-01","lecturaActual":268,"lecturaAnterior":268,"precioM3":30},
@@ -275,6 +272,8 @@
     return d.toLocaleDateString('es-MX', {day:'2-digit', month:'long', year:'numeric'});
   }
 
+  const DATA_KEY = 'agua-app-data-v2';
+
   async function safeGet(key, shared){
     try{
       const r = await window.storage.get(key, !!shared);
@@ -289,49 +288,69 @@
     }catch(e){ return false; }
   }
 
+  function buildSeedState(){
+    const idx = [];
+    const locales = {};
+    const historial = {};
+    for (const rec of SEED){
+      idx.push(rec.numero);
+      locales[rec.numero] = {
+        numero: rec.numero,
+        nombre: '',
+        direccion: DIRECCION_PLAZA,
+        ultimaLecturaActual: rec.lecturaActual,
+        fechaUltimaLectura: rec.fecha,
+        precioM3: rec.precioM3
+      };
+      historial[rec.numero] = [{
+        fecha: rec.fecha,
+        lecturaAnterior: rec.lecturaAnterior,
+        lecturaActual: rec.lecturaActual,
+        consumo: rec.lecturaActual - rec.lecturaAnterior,
+        precioM3: rec.precioM3,
+        total: (rec.lecturaActual - rec.lecturaAnterior) * rec.precioM3,
+        fechaLimite: addDays(rec.fecha, 24),
+        guardadoEn: rec.fecha
+      }];
+    }
+    return {
+      index: idx,
+      locales,
+      historial,
+      config: { nombrePlaza:'Plaza Manitoba II', periodoLabel:'01 MARZO AL 30 DE ABRIL 2026' }
+    };
+  }
+
+  // Guarda TODO el estado (locales, historial, config, índice) en una sola llamada,
+  // para evitar perder datos por límites de peticiones al guardar muchas claves seguidas.
+  async function persistAll(){
+    return await safeSet(DATA_KEY, {
+      index: state.index,
+      locales: state.locales,
+      historial: state.historial,
+      config: state.config
+    }, false);
+  }
+
   async function loadAll(){
-    let idxRaw = await safeGet(LOCAL_STORAGE_KEY, false);
-    if (!idxRaw){
-      // Primera vez: sembrar con datos del archivo original
-      const idx = [];
-      for (const rec of SEED){
-        idx.push(rec.numero);
-        const record = {
-          numero: rec.numero,
-          nombre: '',
-          direccion: DIRECCION_PLAZA,
-          ultimaLecturaActual: rec.lecturaActual,
-          fechaUltimaLectura: rec.fecha,
-          precioM3: rec.precioM3
-        };
-        await safeSet('local:' + rec.numero, record, false);
-        const hist = [{
-          fecha: rec.fecha,
-          lecturaAnterior: rec.lecturaAnterior,
-          lecturaActual: rec.lecturaActual,
-          consumo: rec.lecturaActual - rec.lecturaAnterior,
-          precioM3: rec.precioM3,
-          total: (rec.lecturaActual - rec.lecturaAnterior) * rec.precioM3,
-          fechaLimite: addDays(rec.fecha, 24),
-          guardadoEn: rec.fecha
-        }];
-        await safeSet('historial:' + rec.numero, hist, false);
-      }
-      await safeSet(LOCAL_STORAGE_KEY, idx, false);
-      await safeSet(CONFIG_KEY, { nombrePlaza:'Plaza Manitoba II', periodoLabel:'01 MARZO AL 30 DE ABRIL 2026' }, false);
-      idxRaw = JSON.stringify(idx);
+    const raw = await safeGet(DATA_KEY, false);
+    if (raw){
+      try{
+        const parsed = JSON.parse(raw);
+        state.index = parsed.index || [];
+        state.locales = parsed.locales || {};
+        state.historial = parsed.historial || {};
+        state.config = parsed.config || state.config;
+        return;
+      }catch(e){ /* si está corrupto, sembramos de nuevo abajo */ }
     }
-    state.index = JSON.parse(idxRaw);
-
-    const cfgRaw = await safeGet(CONFIG_KEY, false);
-    if (cfgRaw) state.config = JSON.parse(cfgRaw);
-
-    for (const numero of state.index){
-      const locRaw = await safeGet('local:' + numero, false);
-      if (locRaw) state.locales[numero] = JSON.parse(locRaw);
-      const histRaw = await safeGet('historial:' + numero, false);
-      state.historial[numero] = histRaw ? JSON.parse(histRaw) : [];
-    }
+    // Primera vez (o datos dañados): sembrar con los datos del archivo original y guardar todo junto
+    const seeded = buildSeedState();
+    state.index = seeded.index;
+    state.locales = seeded.locales;
+    state.historial = seeded.historial;
+    state.config = seeded.config;
+    await persistAll();
   }
 
   function localesOrdenados(){
@@ -713,7 +732,6 @@
       fechaUltimaLectura: fecha,
       precioM3
     };
-    const ok1 = await safeSet('local:' + numero, record, false);
 
     const histEntry = {
       fecha, lecturaAnterior: anteriorFinal, lecturaActual, consumo, precioM3, total, fechaLimite,
@@ -721,18 +739,21 @@
     };
     const histArr = state.historial[numero] ? [...state.historial[numero]] : [];
     histArr.push(histEntry);
-    const ok2 = await safeSet('historial:' + numero, histArr, false);
 
-    if (!state.index.includes(numero)){
-      state.index.push(numero);
-      await safeSet(LOCAL_STORAGE_KEY, state.index, false);
-    }
+    const nuevoIndex = state.index.includes(numero) ? state.index : [...state.index, numero];
+    const nuevosLocales = { ...state.locales, [numero]: record };
+    const nuevoHistorial = { ...state.historial, [numero]: histArr };
+
+    const ok = await safeSet(DATA_KEY, {
+      index: nuevoIndex, locales: nuevosLocales, historial: nuevoHistorial, config: state.config
+    }, false);
 
     btn.disabled = false; btn.textContent = 'Guardar y generar recibo';
 
-    if (ok1 && ok2){
-      state.locales[numero] = record;
-      state.historial[numero] = histArr;
+    if (ok){
+      state.index = nuevoIndex;
+      state.locales = nuevosLocales;
+      state.historial = nuevoHistorial;
       state.currentLocal = numero;
       state.lastReceipt = { ...histEntry, numero };
       msgEl.innerHTML = `<div class="msg ok">Recibo guardado correctamente.</div>`;
@@ -856,7 +877,7 @@
     periodoInput.value = state.config.periodoLabel || '';
     periodoInput.addEventListener('change', async ()=>{
       state.config.periodoLabel = periodoInput.value;
-      await safeSet(CONFIG_KEY, state.config, false);
+      await persistAll();
     });
     document.getElementById('plazaNombre').textContent = state.config.nombrePlaza || 'Plaza Manitoba II';
   }
