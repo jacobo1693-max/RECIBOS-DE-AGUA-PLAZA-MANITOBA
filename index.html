@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Recibos de Agua — Plaza Manitoba II</title>
+<style>
+  :root{
+    --primary:#114B5F;
+    --primary-dark:#0B3541;
+    --accent:#1A8FA3;
+    --money:#B8752E;
+    --bg:#EEF4F4;
+    --surface:#FFFFFF;
+    --ink:#10262B;
+    --ink-soft:#4C6A70;
+    --border:#D7E3E4;
+    --ok:#2F8F5B;
+    --danger:#C1443D;
+    --font-display: Georgia, 'Times New Roman', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'SF Mono', 'Consolas', 'Courier New', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; padding:0; background:transparent;
+    font-family: var(--font-body);
+    color: var(--ink);
+  }
+  .app{ max-width:1000px; margin:0 auto; padding:18px 16px 60px; }
+
+  /* Header */
+  .header{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; padding:18px 22px; border-radius:14px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color:#fff; margin-bottom:18px;
+  }
+  .header-left{display:flex; align-items:center; gap:14px;}
+  .drop-icon{ width:40px; height:40px; flex:none; }
+  .header h1{
+    font-family: var(--font-display); font-size:22px; margin:0; font-weight:700; letter-spacing:.3px;
+  }
+  .header .sub{ font-size:12.5px; opacity:.85; margin-top:3px; }
+  .header input.periodo{
+    background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.3); color:#fff;
+    border-radius:8px; padding:6px 10px; font-size:12.5px; font-family:var(--font-body); width:260px;
+  }
+  .header input.periodo::placeholder{color:rgba(255,255,255,.65);}
+
+  /* Tabs */
+  .tabs{ display:flex; gap:6px; margin-bottom:18px; border-bottom:1px solid var(--border); }
+  .tab-btn{
+    appearance:none; border:none; background:none; cursor:pointer;
+    font-family:var(--font-body); font-size:14px; font-weight:600; color:var(--ink-soft);
+    padding:10px 16px; border-bottom:2.5px solid transparent; margin-bottom:-1px;
+  }
+  .tab-btn.active{ color:var(--primary); border-bottom-color:var(--accent); }
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:20px 22px; margin-bottom:18px;
+  }
+  .card h2{ font-family:var(--font-display); font-size:17px; margin:0 0 16px; color:var(--primary-dark); }
+
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; }
+  @media (max-width:620px){ .grid{ grid-template-columns:1fr; } }
+
+  label{ display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:5px; text-transform:uppercase; letter-spacing:.4px; }
+  input[type=text], input[type=number], input[type=date], select{
+    width:100%; padding:9px 11px; border:1px solid var(--border); border-radius:8px;
+    font-size:14.5px; font-family:var(--font-body); color:var(--ink); background:#fff;
+  }
+  input:focus, select:focus{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+  .field{ margin-bottom:2px; }
+  .hint{ font-size:11.5px; color:var(--ink-soft); margin-top:4px; }
+
+  /* Meter readout */
+  .meters{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:6px 0 16px; }
+  @media (max-width:620px){ .meters{ grid-template-columns:1fr; } }
+  .meter-box{
+    background:var(--primary-dark); border-radius:10px; padding:12px 14px;
+  }
+  .meter-box .m-label{ color:#9FD4DD; font-size:11px; text-transform:uppercase; letter-spacing:.6px; font-weight:600; margin-bottom:6px;}
+  .meter-box .m-value{ font-family:var(--font-mono); font-size:26px; color:#EAFBFD; letter-spacing:2px; }
+  .meter-box input{
+    background:transparent; border:none; color:#EAFBFD; font-family:var(--font-mono); font-size:26px;
+    letter-spacing:2px; width:100%; padding:0;
+  }
+  .meter-box input:focus{ outline:none; }
+
+  .calc-row{ display:flex; gap:14px; flex-wrap:wrap; margin:14px 0 4px; }
+  .calc-pill{
+    flex:1; min-width:150px; border:1px solid var(--border); border-radius:10px; padding:12px 14px; background:#F7FAFA;
+  }
+  .calc-pill .cl{ font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--ink-soft); font-weight:700; }
+  .calc-pill .cv{ font-family:var(--font-mono); font-size:22px; margin-top:4px; color:var(--primary-dark); }
+  .calc-pill.total{ background:#FBF1E4; border-color:#EAD3A8; }
+  .calc-pill.total .cv{ color:var(--money); font-weight:700; }
+
+  .actions{ display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
+  button.btn{
+    appearance:none; border:none; border-radius:9px; padding:11px 18px; font-size:14px; font-weight:700;
+    cursor:pointer; font-family:var(--font-body);
+  }
+  .btn-primary{ background:var(--primary); color:#fff; }
+  .btn-primary:hover{ background:var(--primary-dark); }
+  .btn-ghost{ background:#fff; color:var(--primary); border:1px solid var(--border); }
+  .btn-ghost:hover{ border-color:var(--accent); }
+  button.btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+  .msg{ font-size:13px; padding:9px 12px; border-radius:8px; margin-top:10px; }
+  .msg.ok{ background:#E4F4EA; color:var(--ok); }
+  .msg.err{ background:#FBEAE8; color:var(--danger); }
+
+  /* Table */
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-soft); padding:8px 10px; border-bottom:2px solid var(--border);}
+  td{ padding:9px 10px; border-bottom:1px solid var(--border); }
+  tr:hover td{ background:#F5FAFA; }
+  td.num, th.num{ text-align:right; font-family:var(--font-mono); }
+  .row-btn{ background:none; border:1px solid var(--border); border-radius:6px; padding:4px 9px; font-size:12px; cursor:pointer; color:var(--primary); font-weight:600;}
+  .row-btn:hover{ border-color:var(--accent); }
+
+  .summary-bar{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
+  .summary-chip{ background:#fff; border:1px solid var(--border); border-radius:10px; padding:12px 16px; flex:1; min-width:150px; }
+  .summary-chip .sl{ font-size:11px; text-transform:uppercase; color:var(--ink-soft); font-weight:700; letter-spacing:.4px; }
+  .summary-chip .sv{ font-family:var(--font-mono); font-size:21px; color:var(--primary-dark); margin-top:3px; }
+  .summary-chip.money .sv{ color:var(--money); }
+
+  .search-bar{ margin-bottom:12px; }
+
+  /* Receipt */
+  .receipt{
+    border:1.5px dashed var(--accent); border-radius:12px; padding:22px 24px; background:#F7FBFB; margin-top:6px;
+  }
+  .receipt-head{ display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:14px;}
+  .receipt-head .plaza{ font-family:var(--font-display); font-size:19px; color:var(--primary-dark); font-weight:700; }
+  .receipt-head .addr{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+  .receipt-head .tag{ font-size:11px; font-weight:700; letter-spacing:1px; color:var(--accent); text-transform:uppercase; }
+  .receipt-rows{ display:grid; grid-template-columns:1fr 1fr; gap:8px 22px; font-size:14px; margin-bottom:14px;}
+  .receipt-rows .k{ color:var(--ink-soft); }
+  .receipt-rows .v{ font-weight:600; text-align:right; font-family:var(--font-mono); }
+  .receipt-total{
+    display:flex; justify-content:space-between; align-items:center; background:var(--primary-dark);
+    border-radius:10px; padding:14px 18px; color:#fff; margin-top:6px;
+  }
+  .receipt-total .tl{ font-size:13px; text-transform:uppercase; letter-spacing:.5px; opacity:.85; }
+  .receipt-total .tv{ font-family:var(--font-mono); font-size:28px; font-weight:700; color:#FFD9A0; }
+  .receipt-due{ font-size:12px; color:var(--ink-soft); margin-top:10px; text-align:right; }
+
+  .empty{ text-align:center; padding:30px 10px; color:var(--ink-soft); font-size:13.5px; }
+  .loading{ text-align:center; padding:40px 10px; color:var(--ink-soft); }
+
+  select#localSelect optgroup{font-weight:700;}
+
+  #printArea{ display:none; }
+
+  @media print{
+    body > *:not(#printArea){ display:none !important; }
+    #printArea{ display:block !important; }
+    #printArea .receipt{ border:none; border-radius:0; background:#fff; padding:0 6px; }
+    #printArea .receipt-page{ page-break-after:always; padding:18px 6px; }
+    #printArea .receipt-page:last-child{ page-break-after:auto; }
+    .no-print{ display:none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-left">
+      <svg class="drop-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C12 2 5 11.2 5 15.5C5 19.6 8.13 22.5 12 22.5C15.87 22.5 19 19.6 19 15.5C19 11.2 12 2 12 2Z" fill="#EAFBFD" fill-opacity="0.9"/>
+        <path d="M8.5 15.5C8.5 17.43 10 19 12 19" stroke="#1A8FA3" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <h1 id="plazaNombre">Plaza Manitoba II</h1>
+        <div class="sub">Sistema de Recibos de Agua</div>
+      </div>
+    </div>
+    <input class="periodo no-print" id="periodoInput" type="text" placeholder="Periodo actual, ej. 01 MAYO AL 30 JUNIO 2026">
+  </div>
+
+  <div class="tabs no-print">
+    <button class="tab-btn active" data-tab="nuevo">Nuevo Recibo</button>
+    <button class="tab-btn" data-tab="locales">Locales</button>
+    <button class="tab-btn" data-tab="historial">Historial</button>
+  </div>
+
+  <div id="loading" class="loading">Cargando información guardada…</div>
+  <div id="content" style="display:none;"></div>
+
+</div>
+<div id="printArea"></div>
+
+<script>
+(function(){
+  const LOCAL_STORAGE_KEY = 'locales-index';
+  const CONFIG_KEY = 'plaza-config';
+
+  const SEED = [
+    {"numero":"48","fecha":"2026-05-01","lecturaActual":1188,"lecturaAnterior":1176,"precioM3":30},
+    {"numero":"49","fecha":"2026-05-01","lecturaActual":268,"lecturaAnterior":268,"precioM3":30},
+    {"numero":"50","fecha":"2026-05-01","lecturaActual":328,"lecturaAnterior":324,"precioM3":30},
+    {"numero":"51","fecha":"2026-05-01","lecturaActual":138,"lecturaAnterior":138,"precioM3":30},
+    {"numero":"52","fecha":"2026-05-01","lecturaActual":2892,"lecturaAnterior":2865,"precioM3":30},
+    {"numero":"53","fecha":"2026-05-01","lecturaActual":657,"lecturaAnterior":654,"precioM3":30},
+    {"numero":"54","fecha":"2026-05-01","lecturaActual":363,"lecturaAnterior":363,"precioM3":30},
+    {"numero":"55","fecha":"2026-05-01","lecturaActual":498,"lecturaAnterior":495,"precioM3":30},
+    {"numero":"56","fecha":"2026-05-01","lecturaActual":671,"lecturaAnterior":666,"precioM3":30},
+    {"numero":"57","fecha":"2026-05-01","lecturaActual":820,"lecturaAnterior":816,"precioM3":30},
+    {"numero":"58","fecha":"2026-05-01","lecturaActual":911,"lecturaAnterior":875,"precioM3":30},
+    {"numero":"59","fecha":"2026-05-01","lecturaActual":101,"lecturaAnterior":100,"precioM3":30},
+    {"numero":"60","fecha":"2026-05-01","lecturaActual":2543,"lecturaAnterior":2394,"precioM3":30},
+    {"numero":"33","fecha":"2026-05-01","lecturaActual":5160,"lecturaAnterior":5124,"precioM3":30},
+    {"numero":"34","fecha":"2026-05-01","lecturaActual":334,"lecturaAnterior":326,"precioM3":30},
+    {"numero":"35","fecha":"2026-05-01","lecturaActual":1366,"lecturaAnterior":1363,"precioM3":30},
+    {"numero":"36","fecha":"2026-05-01","lecturaActual":326,"lecturaAnterior":316,"precioM3":30},
+    {"numero":"37","fecha":"2026-05-01","lecturaActual":618,"lecturaAnterior":600,"precioM3":30},
+    {"numero":"38","fecha":"2026-05-01","lecturaActual":18,"lecturaAnterior":18,"precioM3":30},
+    {"numero":"39","fecha":"2026-05-01","lecturaActual":196,"lecturaAnterior":194,"precioM3":30},
+    {"numero":"40","fecha":"2026-05-01","lecturaActual":57,"lecturaAnterior":54,"precioM3":30},
+    {"numero":"19","fecha":"2026-05-01","lecturaActual":17881,"lecturaAnterior":17623,"precioM3":30},
+    {"numero":"20","fecha":"2026-05-01","lecturaActual":460,"lecturaAnterior":457,"precioM3":30},
+    {"numero":"21","fecha":"2026-05-01","lecturaActual":168,"lecturaAnterior":164,"precioM3":30},
+    {"numero":"23","fecha":"2026-05-01","lecturaActual":620,"lecturaAnterior":609,"precioM3":30},
+    {"numero":"25","fecha":"2023-02-15","lecturaActual":649,"lecturaAnterior":603,"precioM3":15},
+    {"numero":"24","fecha":"2026-05-01","lecturaActual":548,"lecturaAnterior":546,"precioM3":30},
+    {"numero":"26","fecha":"2026-05-01","lecturaActual":6914,"lecturaAnterior":6794,"precioM3":23.2},
+    {"numero":"A LA HUELTA","fecha":"2026-05-01","lecturaActual":1001,"lecturaAnterior":957,"precioM3":30},
+    {"numero":"CASA WALTER","fecha":"2023-02-15","lecturaActual":8535,"lecturaAnterior":8437,"precioM3":30},
+    {"numero":"29","fecha":"2026-05-01","lecturaActual":134,"lecturaAnterior":130,"precioM3":30},
+    {"numero":"PINTURAS","fecha":"2023-02-15","lecturaActual":8910,"lecturaAnterior":8892,"precioM3":30},
+    {"numero":"42","fecha":"2026-05-01","lecturaActual":99,"lecturaAnterior":99,"precioM3":30},
+    {"numero":"43","fecha":"2026-05-01","lecturaActual":551,"lecturaAnterior":547,"precioM3":30},
+    {"numero":"27","fecha":"2026-05-01","lecturaActual":660,"lecturaAnterior":660,"precioM3":30},
+    {"numero":"28","fecha":"2026-05-01","lecturaActual":1714,"lecturaAnterior":1709,"precioM3":30},
+    {"numero":"ESTAFETA","fecha":"2026-05-01","lecturaActual":685,"lecturaAnterior":613,"precioM3":30},
+    {"numero":"JARDIN","fecha":"2026-05-01","lecturaActual":1443,"lecturaAnterior":1424,"precioM3":30},
+    {"numero":"LOCAL 27","fecha":"2026-05-01","lecturaActual":89,"lecturaAnterior":89,"precioM3":30},
+    {"numero":"30 31 32","fecha":"2026-05-01","lecturaActual":721,"lecturaAnterior":721,"precioM3":30},
+    {"numero":"SCELI","fecha":"2026-05-01","lecturaActual":181,"lecturaAnterior":162,"precioM3":30}
+  ];
+
+  const DIRECCION_PLAZA = 'KM 7 CARR A ALVARO OBREGON';
+
+  let state = {
+    tab: 'nuevo',
+    index: [],
+    locales: {},   // numero -> record
+    historial: {}, // numero -> array
+    config: { nombrePlaza:'Plaza Manitoba II', periodoLabel:'' },
+    currentLocal: null,
+    lastReceipt: null,
+    historialLocal: '__todos__'
+  };
+
+  function fmt(n){
+    if (n === null || n === undefined || isNaN(n)) return '—';
+    return Number(n).toLocaleString('es-MX', {maximumFractionDigits:2});
+  }
+  function money(n){
+    if (n === null || n === undefined || isNaN(n)) return '$0.00';
+    return '$' + Number(n).toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function addDays(dateStr, days){
+    const d = new Date(dateStr + 'T00:00:00');
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0,10);
+  }
+  function fechaBonita(dateStr){
+    if(!dateStr) return '—';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('es-MX', {day:'2-digit', month:'long', year:'numeric'});
+  }
+
+  async function safeGet(key, shared){
+    try{
+      const r = await window.storage.get(key, !!shared);
+      return r ? r.value : null;
+    }catch(e){ return null; }
+  }
+  async function safeSet(key, value, shared){
+    try{
+      const v = typeof value === 'string' ? value : JSON.stringify(value);
+      const r = await window.storage.set(key, v, !!shared);
+      return !!r;
+    }catch(e){ return false; }
+  }
+
+  async function loadAll(){
+    let idxRaw = await safeGet(LOCAL_STORAGE_KEY, false);
+    if (!idxRaw){
+      // Primera vez: sembrar con datos del archivo original
+      const idx = [];
+      for (const rec of SEED){
+        idx.push(rec.numero);
+        const record = {
+          numero: rec.numero,
+          nombre: '',
+          direccion: DIRECCION_PLAZA,
+          ultimaLecturaActual: rec.lecturaActual,
+          fechaUltimaLectura: rec.fecha,
+          precioM3: rec.precioM3
+        };
+        await safeSet('local:' + rec.numero, record, false);
+        const hist = [{
+          fecha: rec.fecha,
+          lecturaAnterior: rec.lecturaAnterior,
+          lecturaActual: rec.lecturaActual,
+          consumo: rec.lecturaActual - rec.lecturaAnterior,
+          precioM3: rec.precioM3,
+          total: (rec.lecturaActual - rec.lecturaAnterior) * rec.precioM3,
+          fechaLimite: addDays(rec.fecha, 24),
+          guardadoEn: rec.fecha
+        }];
+        await safeSet('historial:' + rec.numero, hist, false);
+      }
+      await safeSet(LOCAL_STORAGE_KEY, idx, false);
+      await safeSet(CONFIG_KEY, { nombrePlaza:'Plaza Manitoba II', periodoLabel:'01 MARZO AL 30 DE ABRIL 2026' }, false);
+      idxRaw = JSON.stringify(idx);
+    }
+    state.index = JSON.parse(idxRaw);
+
+    const cfgRaw = await safeGet(CONFIG_KEY, false);
+    if (cfgRaw) state.config = JSON.parse(cfgRaw);
+
+    for (const numero of state.index){
+      const locRaw = await safeGet('local:' + numero, false);
+      if (locRaw) state.locales[numero] = JSON.parse(locRaw);
+      const histRaw = await safeGet('historial:' + numero, false);
+      state.historial[numero] = histRaw ? JSON.parse(histRaw) : [];
+    }
+  }
+
+  function localesOrdenados(){
+    return [...state.index].sort((a,b)=>{
+      const na = parseInt(a,10), nb = parseInt(b,10);
+      const aNum = !isNaN(na) && String(na)===a.trim();
+      const bNum = !isNaN(nb) && String(nb)===b.trim();
+      if (aNum && bNum) return na - nb;
+      if (aNum) return -1;
+      if (bNum) return 1;
+      return a.localeCompare(b);
+    });
+  }
+
+  /* ---------- RENDER: Nuevo Recibo ---------- */
+  function renderNuevo(){
+    const opciones = localesOrdenados().map(n=>{
+      const rec = state.locales[n];
+      const label = rec && rec.nombre ? `${n} — ${rec.nombre}` : n;
+      return `<option value="${escAttr(n)}" ${state.currentLocal===n?'selected':''}>${esc(label)}</option>`;
+    }).join('');
+
+    const cur = state.currentLocal ? state.locales[state.currentLocal] : null;
+    const anterior = cur ? cur.ultimaLecturaActual : '';
+    const nombre = cur ? (cur.nombre||'') : '';
+    const precio = cur ? cur.precioM3 : 30;
+    const fechaLectura = document.getElementById('fechaLecturaInput') ?
+      document.getElementById('fechaLecturaInput').value : new Date().toISOString().slice(0,10);
+
+    return `
+    <div class="card">
+      <h2>Seleccionar local</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="localSelect">Número de local</label>
+          <select id="localSelect">
+            <option value="">— elegir local —</option>
+            ${opciones}
+            <option value="__nuevo__">+ Agregar nuevo local</option>
+          </select>
+        </div>
+        <div class="field" id="nuevoLocalWrap" style="${state.currentLocal==='__nuevo__'?'':'display:none;'}">
+          <label for="nuevoLocalInput">Número del nuevo local</label>
+          <input type="text" id="nuevoLocalInput" placeholder="Ej. 61 o nombre del local">
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="formCard" style="${state.currentLocal && state.currentLocal!=='__nuevo__' || document.getElementById('nuevoLocalInput') ? '' : 'display:none;'}">
+      <h2>Datos del recibo</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="nombreInput">Nombre del local / inquilino</label>
+          <input type="text" id="nombreInput" value="${escAttr(nombre)}" placeholder="Nombre a mostrar en el recibo">
+        </div>
+        <div class="field">
+          <label for="fechaLecturaInput">Fecha de lectura</label>
+          <input type="date" id="fechaLecturaInput" value="${fechaLectura}">
+        </div>
+      </div>
+
+      <div class="meters">
+        <div class="meter-box">
+          <div class="m-label">Lectura anterior</div>
+          <input type="number" id="lecturaAnteriorInput" value="${anterior===''?'':anterior}" step="0.01">
+        </div>
+        <div class="meter-box">
+          <div class="m-label">Lectura actual</div>
+          <input type="number" id="lecturaActualInput" value="" step="0.01" placeholder="0">
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="precioInput">Precio por m³ ($)</label>
+          <input type="number" id="precioInput" value="${precio}" step="0.01">
+        </div>
+        <div class="field">
+          <label for="fechaLimiteInput">Fecha límite de pago</label>
+          <input type="date" id="fechaLimiteInput" value="${addDays(fechaLectura,24)}">
+        </div>
+      </div>
+
+      <div class="calc-row">
+        <div class="calc-pill">
+          <div class="cl">Consumo (m³)</div>
+          <div class="cv" id="consumoOut">0</div>
+        </div>
+        <div class="calc-pill total">
+          <div class="cl">Total a pagar</div>
+          <div class="cv" id="totalOut">$0.00</div>
+        </div>
+      </div>
+
+      <div class="actions no-print">
+        <button class="btn btn-primary" id="guardarBtn">Guardar y generar recibo</button>
+        <button class="btn btn-ghost" id="limpiarBtn">Limpiar</button>
+      </div>
+      <div id="formMsg"></div>
+    </div>
+
+    <div id="receiptWrap"></div>
+    `;
+  }
+
+  function receiptMarkup(data){
+    return `
+      <div class="receipt-head">
+        <div>
+          <div class="plaza">${esc(state.config.nombrePlaza || 'Plaza Manitoba II')}</div>
+          <div class="addr">${esc(DIRECCION_PLAZA)}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="tag">Recibo de Agua</div>
+          <div class="addr">${esc(state.config.periodoLabel || '')}</div>
+        </div>
+      </div>
+      <div class="receipt-rows">
+        <div class="k">Local</div><div class="v">${esc(data.numero)}</div>
+        <div class="k">Nombre</div><div class="v">${esc(data.nombre || '—')}</div>
+        <div class="k">Fecha de lectura</div><div class="v">${fechaBonita(data.fecha)}</div>
+        <div class="k">Lectura anterior</div><div class="v">${fmt(data.lecturaAnterior)}</div>
+        <div class="k">Lectura actual</div><div class="v">${fmt(data.lecturaActual)}</div>
+        <div class="k">Consumo</div><div class="v">${fmt(data.consumo)} m³</div>
+        <div class="k">Precio por m³</div><div class="v">${money(data.precioM3)}</div>
+      </div>
+      <div class="receipt-total">
+        <div class="tl">Total a pagar</div>
+        <div class="tv">${money(data.total)}</div>
+      </div>
+      <div class="receipt-due">Antes del día ${fechaBonita(data.fechaLimite)}</div>
+    `;
+  }
+
+  function renderReceipt(data){
+    if (!data) return '';
+    return `
+    <div class="card">
+      <h2>Vista previa del recibo</h2>
+      <div class="receipt" id="receiptEl">${receiptMarkup(data)}</div>
+      <div class="actions no-print" style="margin-top:14px;">
+        <button class="btn btn-ghost" id="printBtn">Imprimir este recibo</button>
+      </div>
+    </div>`;
+  }
+
+  function getListaLocales(filtro){
+    filtro = (filtro||'').trim().toLowerCase();
+    return localesOrdenados()
+      .map(n=>{
+        const rec = state.locales[n];
+        const hist = state.historial[n] || [];
+        const last = hist[hist.length-1] || null;
+        return {n, rec, hist, last};
+      })
+      .filter(({n, rec}) => !filtro || n.toLowerCase().includes(filtro) || (rec && rec.nombre && rec.nombre.toLowerCase().includes(filtro)));
+  }
+
+  function printReceiptData(data){
+    const area = document.getElementById('printArea');
+    area.innerHTML = `<div class="receipt-page"><div class="receipt">${receiptMarkup(data)}</div></div>`;
+    window.print();
+  }
+
+  function printAllReceipts(){
+    const filtro = document.getElementById('filtroInput')?.value || '';
+    const lista = getListaLocales(filtro).filter(({last})=> !!last);
+    if (!lista.length){
+      alert('No hay recibos guardados para imprimir todavía.');
+      return;
+    }
+    const area = document.getElementById('printArea');
+    area.innerHTML = lista.map(({n, last})=>{
+      const data = { ...last, numero: n };
+      return `<div class="receipt-page"><div class="receipt">${receiptMarkup(data)}</div></div>`;
+    }).join('');
+    window.print();
+  }
+
+  /* ---------- RENDER: Locales ---------- */
+  function renderLocales(){
+    const filtro = (document.getElementById('filtroInput')?.value || '').trim().toLowerCase();
+    const lista = getListaLocales(filtro);
+
+    let totalUltimo = 0;
+    lista.forEach(({hist})=>{
+      const last = hist[hist.length-1];
+      if (last) totalUltimo += last.total;
+    });
+
+    const filas = lista.map(({n, rec, hist})=>{
+      const last = hist[hist.length-1];
+      return `<tr>
+        <td>${esc(n)}</td>
+        <td>${esc(rec && rec.nombre ? rec.nombre : '—')}</td>
+        <td class="num">${last ? fmt(last.lecturaActual) : '—'}</td>
+        <td>${last ? fechaBonita(last.fecha) : '—'}</td>
+        <td class="num">${last ? money(last.total) : '—'}</td>
+        <td class="no-print" style="white-space:nowrap;">
+          <button class="row-btn" data-local="${escAttr(n)}">Nuevo recibo</button>
+          ${last ? `<button class="row-btn" data-print="${escAttr(n)}">Imprimir</button>` : ''}
+        </td>
+      </tr>`;
+    }).join('');
+
+    return `
+    <div class="summary-bar">
+      <div class="summary-chip">
+        <div class="sl">Locales registrados</div>
+        <div class="sv">${state.index.length}</div>
+      </div>
+      <div class="summary-chip money">
+        <div class="sl">Total último periodo</div>
+        <div class="sv">${money(totalUltimo)}</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Locales</h2>
+      <div class="grid">
+        <div class="field search-bar no-print">
+          <label for="filtroInput">Buscar por local o nombre</label>
+          <input type="text" id="filtroInput" placeholder="Ej. 48 o nombre del inquilino">
+        </div>
+      </div>
+      <div class="actions no-print" style="margin-top:2px; margin-bottom:14px;">
+        <button class="btn btn-primary" id="printAllBtn">Imprimir todos los recibos</button>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Local</th><th>Nombre</th><th class="num">Última lectura</th><th>Fecha</th><th class="num">Total último recibo</th><th class="no-print"></th>
+        </tr></thead>
+        <tbody>${filas || `<tr><td colspan="6" class="empty">Sin locales que coincidan con la búsqueda.</td></tr>`}</tbody>
+      </table>
+    </div>`;
+  }
+
+  /* ---------- RENDER: Historial ---------- */
+  function renderHistorial(){
+    const sel = state.historialLocal || '__todos__';
+    const opciones = localesOrdenados().map(n=>{
+      const rec = state.locales[n];
+      const label = rec && rec.nombre ? `${n} — ${rec.nombre}` : n;
+      return `<option value="${escAttr(n)}" ${sel===n?'selected':''}>${esc(label)}</option>`;
+    }).join('');
+
+    let entradas = [];
+    if (sel === '__todos__'){
+      for (const n of state.index){
+        (state.historial[n]||[]).forEach(h => entradas.push({...h, numero:n}));
+      }
+    } else {
+      (state.historial[sel]||[]).forEach(h => entradas.push({...h, numero:sel}));
+    }
+    entradas.sort((a,b)=>{
+      if (a.fecha !== b.fecha) return a.fecha < b.fecha ? 1 : -1;
+      return (b.guardadoEn||'').localeCompare(a.guardadoEn||'');
+    });
+
+    const totalHistorico = entradas.reduce((s,e)=> s + (e.total||0), 0);
+
+    const filas = entradas.map((e, i)=>{
+      return `<tr>
+        <td>${esc(e.numero)}</td>
+        <td>${fechaBonita(e.fecha)}</td>
+        <td class="num">${fmt(e.lecturaAnterior)}</td>
+        <td class="num">${fmt(e.lecturaActual)}</td>
+        <td class="num">${fmt(e.consumo)}</td>
+        <td class="num">${money(e.precioM3)}</td>
+        <td class="num">${money(e.total)}</td>
+        <td class="no-print"><button class="row-btn" data-reprint="${i}">Reimprimir</button></td>
+      </tr>`;
+    }).join('');
+
+    // Stash entradas on state for the reprint handler to reference by index.
+    state._historialEntradas = entradas;
+
+    return `
+    <div class="summary-bar">
+      <div class="summary-chip">
+        <div class="sl">Recibos guardados</div>
+        <div class="sv">${entradas.length}</div>
+      </div>
+      <div class="summary-chip money">
+        <div class="sl">Total histórico</div>
+        <div class="sv">${money(totalHistorico)}</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Historial de recibos</h2>
+      <div class="grid">
+        <div class="field no-print">
+          <label for="historialSelect">Local</label>
+          <select id="historialSelect">
+            <option value="__todos__" ${sel==='__todos__'?'selected':''}>Todos los locales</option>
+            ${opciones}
+          </select>
+        </div>
+      </div>
+      <table style="margin-top:10px;">
+        <thead><tr>
+          <th>Local</th><th>Fecha</th><th class="num">Lect. anterior</th><th class="num">Lect. actual</th>
+          <th class="num">Consumo</th><th class="num">Precio/m³</th><th class="num">Total</th><th class="no-print"></th>
+        </tr></thead>
+        <tbody>${filas || `<tr><td colspan="8" class="empty">Todavía no hay recibos guardados para este local.</td></tr>`}</tbody>
+      </table>
+    </div>`;
+  }
+
+
+  function esc(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function escAttr(s){ return esc(s); }
+
+  /* ---------- CALC ---------- */
+  function recalc(){
+    const anterior = parseFloat(document.getElementById('lecturaAnteriorInput')?.value);
+    const actual = parseFloat(document.getElementById('lecturaActualInput')?.value);
+    const precio = parseFloat(document.getElementById('precioInput')?.value);
+    const consumoEl = document.getElementById('consumoOut');
+    const totalEl = document.getElementById('totalOut');
+    if (isNaN(anterior) || isNaN(actual) || isNaN(precio)){
+      if (consumoEl) consumoEl.textContent = '0';
+      if (totalEl) totalEl.textContent = '$0.00';
+      return;
+    }
+    const consumo = actual - anterior;
+    const total = consumo * precio;
+    if (consumoEl) consumoEl.textContent = fmt(consumo) + (consumo<0 ? ' (revisar)' : '');
+    if (totalEl) totalEl.textContent = money(total);
+  }
+
+  /* ---------- SAVE ---------- */
+  async function guardarRecibo(){
+    const btn = document.getElementById('guardarBtn');
+    const msgEl = document.getElementById('formMsg');
+    let numero = state.currentLocal;
+    if (numero === '__nuevo__'){
+      const nuevoInput = document.getElementById('nuevoLocalInput');
+      numero = (nuevoInput?.value || '').trim();
+      if (!numero){
+        msgEl.innerHTML = `<div class="msg err">Escribe el número o nombre del nuevo local.</div>`;
+        return;
+      }
+      if (state.locales[numero]){
+        msgEl.innerHTML = `<div class="msg err">Ese local ya existe. Selecciónalo de la lista.</div>`;
+        return;
+      }
+    }
+    if (!numero){
+      msgEl.innerHTML = `<div class="msg err">Selecciona un local primero.</div>`;
+      return;
+    }
+
+    const nombre = document.getElementById('nombreInput').value.trim();
+    const fecha = document.getElementById('fechaLecturaInput').value;
+    const lecturaAnterior = parseFloat(document.getElementById('lecturaAnteriorInput').value);
+    const lecturaActual = parseFloat(document.getElementById('lecturaActualInput').value);
+    const precioM3 = parseFloat(document.getElementById('precioInput').value);
+    const fechaLimite = document.getElementById('fechaLimiteInput').value;
+
+    if (isNaN(lecturaActual)){
+      msgEl.innerHTML = `<div class="msg err">Captura la lectura actual.</div>`;
+      return;
+    }
+    if (isNaN(precioM3)){
+      msgEl.innerHTML = `<div class="msg err">Captura el precio por m³.</div>`;
+      return;
+    }
+    const anteriorFinal = isNaN(lecturaAnterior) ? 0 : lecturaAnterior;
+    const consumo = lecturaActual - anteriorFinal;
+    const total = consumo * precioM3;
+
+    btn.disabled = true; btn.textContent = 'Guardando…';
+
+    const record = {
+      numero, nombre, direccion: DIRECCION_PLAZA,
+      ultimaLecturaActual: lecturaActual,
+      fechaUltimaLectura: fecha,
+      precioM3
+    };
+    const ok1 = await safeSet('local:' + numero, record, false);
+
+    const histEntry = {
+      fecha, lecturaAnterior: anteriorFinal, lecturaActual, consumo, precioM3, total, fechaLimite,
+      guardadoEn: new Date().toISOString().slice(0,10)
+    };
+    const histArr = state.historial[numero] ? [...state.historial[numero]] : [];
+    histArr.push(histEntry);
+    const ok2 = await safeSet('historial:' + numero, histArr, false);
+
+    if (!state.index.includes(numero)){
+      state.index.push(numero);
+      await safeSet(LOCAL_STORAGE_KEY, state.index, false);
+    }
+
+    btn.disabled = false; btn.textContent = 'Guardar y generar recibo';
+
+    if (ok1 && ok2){
+      state.locales[numero] = record;
+      state.historial[numero] = histArr;
+      state.currentLocal = numero;
+      state.lastReceipt = { ...histEntry, numero };
+      msgEl.innerHTML = `<div class="msg ok">Recibo guardado correctamente.</div>`;
+      document.getElementById('receiptWrap').innerHTML = renderReceipt(state.lastReceipt);
+      bindReceiptEvents();
+    } else {
+      msgEl.innerHTML = `<div class="msg err">No se pudo guardar. Intenta de nuevo.</div>`;
+    }
+  }
+
+  /* ---------- BIND EVENTS ---------- */
+  function bindNuevoEvents(){
+    const sel = document.getElementById('localSelect');
+    if (sel) sel.addEventListener('change', (e)=>{
+      state.currentLocal = e.target.value || null;
+      state.lastReceipt = null;
+      render();
+    });
+    const nuevoInput = document.getElementById('nuevoLocalInput');
+    if (nuevoInput) nuevoInput.addEventListener('input', ()=>{ /* noop, just typing */ });
+
+    ['lecturaAnteriorInput','lecturaActualInput','precioInput'].forEach(id=>{
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', recalc);
+    });
+    const fechaEl = document.getElementById('fechaLecturaInput');
+    if (fechaEl) fechaEl.addEventListener('change', ()=>{
+      const limiteEl = document.getElementById('fechaLimiteInput');
+      if (limiteEl) limiteEl.value = addDays(fechaEl.value, 24);
+    });
+    const guardarBtn = document.getElementById('guardarBtn');
+    if (guardarBtn) guardarBtn.addEventListener('click', guardarRecibo);
+    const limpiarBtn = document.getElementById('limpiarBtn');
+    if (limpiarBtn) limpiarBtn.addEventListener('click', ()=>{
+      state.currentLocal = null;
+      state.lastReceipt = null;
+      render();
+    });
+    recalc();
+    bindReceiptEvents();
+  }
+
+  function bindReceiptEvents(){
+    const printBtn = document.getElementById('printBtn');
+    if (printBtn) printBtn.addEventListener('click', ()=>{
+      if (state.lastReceipt) printReceiptData(state.lastReceipt);
+    });
+  }
+
+  function bindLocalesEvents(){
+    const filtro = document.getElementById('filtroInput');
+    if (filtro) filtro.addEventListener('input', ()=>{
+      document.getElementById('content').innerHTML = renderLocales();
+      bindLocalesEvents();
+    });
+    document.querySelectorAll('[data-local]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        state.currentLocal = b.getAttribute('data-local');
+        state.tab = 'nuevo';
+        render();
+      });
+    });
+    document.querySelectorAll('[data-print]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const n = b.getAttribute('data-print');
+        const hist = state.historial[n] || [];
+        const last = hist[hist.length-1];
+        if (last) printReceiptData({ ...last, numero: n });
+      });
+    });
+    const printAllBtn = document.getElementById('printAllBtn');
+    if (printAllBtn) printAllBtn.addEventListener('click', printAllReceipts);
+  }
+
+  function bindHistorialEvents(){
+    const sel = document.getElementById('historialSelect');
+    if (sel) sel.addEventListener('change', ()=>{
+      state.historialLocal = sel.value;
+      document.getElementById('content').innerHTML = renderHistorial();
+      bindHistorialEvents();
+    });
+    document.querySelectorAll('[data-reprint]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const idx = parseInt(b.getAttribute('data-reprint'), 10);
+        const entry = state._historialEntradas[idx];
+        if (entry) printReceiptData(entry);
+      });
+    });
+  }
+
+  /* ---------- MAIN RENDER ---------- */
+  function render(){
+    document.querySelectorAll('.tab-btn').forEach(b=>{
+      b.classList.toggle('active', b.dataset.tab === state.tab);
+    });
+    const content = document.getElementById('content');
+    if (state.tab === 'nuevo'){
+      content.innerHTML = renderNuevo();
+      bindNuevoEvents();
+      if (state.currentLocal === '__nuevo__'){
+        const wrap = document.getElementById('nuevoLocalWrap');
+        if (wrap) wrap.style.display = '';
+      }
+    } else if (state.tab === 'locales'){
+      content.innerHTML = renderLocales();
+      bindLocalesEvents();
+    } else {
+      content.innerHTML = renderHistorial();
+      bindHistorialEvents();
+    }
+  }
+
+  function bindTabs(){
+    document.querySelectorAll('.tab-btn').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        state.tab = b.dataset.tab;
+        render();
+      });
+    });
+    const periodoInput = document.getElementById('periodoInput');
+    periodoInput.value = state.config.periodoLabel || '';
+    periodoInput.addEventListener('change', async ()=>{
+      state.config.periodoLabel = periodoInput.value;
+      await safeSet(CONFIG_KEY, state.config, false);
+    });
+    document.getElementById('plazaNombre').textContent = state.config.nombrePlaza || 'Plaza Manitoba II';
+  }
+
+  async function init(){
+    await loadAll();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = '';
+    bindTabs();
+    render();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
