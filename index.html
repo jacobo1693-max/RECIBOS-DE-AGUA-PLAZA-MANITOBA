@@ -197,9 +197,24 @@
   @media print{
     body > *:not(#printArea){ display:none !important; }
     #printArea{ display:block !important; }
-    #printArea .receipt{ border:none; border-radius:0; background:#fff; padding:0 6px; }
-    #printArea .receipt-page{ page-break-after:always; padding:18px 6px; }
-    #printArea .receipt-page:last-child{ page-break-after:auto; }
+    #printArea .receipt{
+      border:none; border-radius:0; background:#fff; padding:0 6px;
+      break-inside:avoid; page-break-inside:avoid; margin-bottom:6px;
+    }
+    #printArea .receipt-page{
+      page-break-after:always; break-after:page; page-break-inside:avoid; break-inside:avoid; padding:14px 6px;
+    }
+    #printArea .receipt-page:last-child{ page-break-after:auto; break-after:auto; }
+    #printArea .cut-line{ break-inside:avoid; page-break-inside:avoid; margin:8px 0; }
+    #printArea .receipt-head{ padding-bottom:8px; margin-bottom:8px; }
+    #printArea .receipt-head .mini-logo{ width:32px; height:32px; }
+    #printArea .receipt-head .plaza{ font-size:16px; }
+    #printArea .receipt-head .addr{ font-size:10.5px; }
+    #printArea .receipt-rows{ margin-bottom:8px; font-size:12.5px; }
+    #printArea .receipt-rows td{ padding:5px 10px; }
+    #printArea .receipt-total{ padding:8px 14px; margin-top:2px; }
+    #printArea .receipt-total .tv{ font-size:20px; }
+    #printArea .receipt-due{ padding:6px 12px; margin-top:6px; font-size:12px; }
     .no-print{ display:none !important; }
   }
 </style>
