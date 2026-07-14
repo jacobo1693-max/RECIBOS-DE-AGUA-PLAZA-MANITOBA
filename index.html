@@ -164,7 +164,13 @@
   }
   .receipt-total .tl{ font-size:13px; text-transform:uppercase; letter-spacing:.5px; opacity:.85; }
   .receipt-total .tv{ font-family:var(--font-mono); font-size:28px; font-weight:700; color:#FFC07A; }
-  .receipt-due{ font-size:12px; color:var(--ink-soft); margin-top:10px; text-align:right; }
+  .receipt-due{
+    display:flex; justify-content:space-between; align-items:center;
+    background:#FFF1E0; border:2px solid var(--accent); border-radius:10px;
+    padding:10px 16px; margin-top:10px; font-size:13.5px; color:#000;
+  }
+  .receipt-due .dl{ text-transform:uppercase; letter-spacing:.5px; font-weight:800; font-size:11.5px; color:#8A3B00; }
+  .receipt-due .dv{ font-weight:800; font-family:var(--font-mono); font-size:15px; }
 
   .cut-line{
     display:flex; align-items:center; gap:8px; margin:16px 0; color:var(--ink-soft); font-size:11px;
@@ -218,6 +224,7 @@
     <button class="tab-btn active" data-tab="nuevo">Nuevo Recibo</button>
     <button class="tab-btn" data-tab="locales">Locales</button>
     <button class="tab-btn" data-tab="historial">Historial</button>
+    <button class="tab-btn" data-tab="generales">Medidores Generales</button>
   </div>
 
   <div id="loading" class="loading">Cargando información guardada…</div>
@@ -284,7 +291,8 @@
     currentLocal: null,
     lastReceipt: null,
     historialLocal: '__todos__',
-    editingLocal: null
+    editingLocal: null,
+    generales: { g1:{lecturaAnterior:0, lecturaActual:0}, g2:{lecturaAnterior:0, lecturaActual:0} }
   };
 
   function fmt(n){
@@ -393,18 +401,20 @@
       index: idx,
       locales,
       historial,
-      config: { nombrePlaza:'Plaza Manitoba II', periodoLabel:'01 MARZO AL 30 DE ABRIL 2026' }
+      config: { nombrePlaza:'Plaza Manitoba II', periodoLabel:'01 MARZO AL 30 DE ABRIL 2026' },
+      generales: { g1:{lecturaAnterior:0, lecturaActual:0}, g2:{lecturaAnterior:0, lecturaActual:0} }
     };
   }
 
-  // Guarda TODO el estado (locales, historial, config, índice) en una sola llamada,
+  // Guarda TODO el estado (locales, historial, config, medidores generales, índice) en una sola llamada,
   // para evitar perder datos por límites de peticiones al guardar muchas claves seguidas.
   async function persistAll(){
     return await safeSet(DATA_KEY, {
       index: state.index,
       locales: state.locales,
       historial: state.historial,
-      config: state.config
+      config: state.config,
+      generales: state.generales
     }, false);
   }
 
@@ -417,6 +427,7 @@
         state.locales = parsed.locales || {};
         state.historial = parsed.historial || {};
         state.config = parsed.config || state.config;
+        state.generales = parsed.generales || state.generales;
         return;
       }catch(e){ /* si está corrupto, sembramos de nuevo abajo */ }
     }
@@ -426,6 +437,7 @@
     state.locales = seeded.locales;
     state.historial = seeded.historial;
     state.config = seeded.config;
+    state.generales = seeded.generales;
     await persistAll();
   }
 
@@ -565,7 +577,7 @@
         <div class="tl">Total a pagar</div>
         <div class="tv">${money(data.total)}</div>
       </div>
-      <div class="receipt-due">Antes del día ${fechaBonita(data.fechaLimite)}</div>
+      <div class="receipt-due"><span class="dl">Fecha límite de pago</span><span class="dv">${fechaBonita(data.fechaLimite)}</span></div>
     `;
   }
 
@@ -770,6 +782,83 @@
     </div>`;
   }
 
+  /* ---------- Medidores generales ---------- */
+  function sumaConsumoNormales(){
+    return state.index.reduce((acc, n)=>{
+      const hist = state.historial[n] || [];
+      const last = hist[hist.length - 1];
+      return acc + (last ? (last.consumo || 0) : 0);
+    }, 0);
+  }
+
+  function renderGenerales(){
+    const g1 = state.generales.g1;
+    const g2 = state.generales.g2;
+    const totalGeneral = (g1.lecturaActual - g1.lecturaAnterior) + (g2.lecturaActual - g2.lecturaAnterior);
+    const totalNormales = sumaConsumoNormales();
+    const diferencia = totalGeneral - totalNormales;
+
+    return `
+    <div class="card">
+      <h2>Medidores generales</h2>
+      <p class="hint" style="margin-bottom:16px;">
+        Captura la lectura de los dos medidores generales de la plaza. Se compara la suma de ambos contra la suma de
+        todos los medidores normales de los locales (según su último recibo guardado), para ver la diferencia
+        (agua no registrada por los medidores individuales, fugas, áreas comunes, etc.).
+      </p>
+      <div class="grid">
+        <div>
+          <h2 style="font-size:14px; margin-bottom:10px;">General 1</h2>
+          <div class="meters">
+            <div class="meter-box">
+              <div class="m-label">Lectura anterior</div>
+              <input type="number" id="g1AnteriorInput" value="${g1.lecturaAnterior}" step="0.01">
+            </div>
+            <div class="meter-box">
+              <div class="m-label">Lectura actual</div>
+              <input type="number" id="g1ActualInput" value="${g1.lecturaActual}" step="0.01">
+            </div>
+          </div>
+        </div>
+        <div>
+          <h2 style="font-size:14px; margin-bottom:10px;">General 2</h2>
+          <div class="meters">
+            <div class="meter-box">
+              <div class="m-label">Lectura anterior</div>
+              <input type="number" id="g2AnteriorInput" value="${g2.lecturaAnterior}" step="0.01">
+            </div>
+            <div class="meter-box">
+              <div class="m-label">Lectura actual</div>
+              <input type="number" id="g2ActualInput" value="${g2.lecturaActual}" step="0.01">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="actions no-print">
+        <button class="btn btn-primary" id="guardarGeneralesBtn">Guardar lecturas generales</button>
+      </div>
+      <div id="generalesMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Comparativo</h2>
+      <div class="calc-row">
+        <div class="calc-pill">
+          <div class="cl">Total medidores generales</div>
+          <div class="cv" id="totalGeneralOut">${fmt(totalGeneral)} m³</div>
+        </div>
+        <div class="calc-pill">
+          <div class="cl">Total medidores normales</div>
+          <div class="cv" id="totalNormalesOut">${fmt(totalNormales)} m³</div>
+        </div>
+        <div class="calc-pill total">
+          <div class="cl">Diferencia (general − normales)</div>
+          <div class="cv" id="diferenciaOut">${fmt(diferencia)} m³</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
 
   function esc(s){
     return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -808,11 +897,9 @@
 
     if (msgEl) msgEl.textContent = 'Guardando nombre…';
     const nuevosLocales = { ...state.locales, [numero]: { ...state.locales[numero], nombre } };
-    const ok = await safeSet(DATA_KEY, {
-      index: state.index, locales: nuevosLocales, historial: state.historial, config: state.config
-    }, false);
+    state.locales = nuevosLocales;
+    const ok = await persistAll();
     if (ok){
-      state.locales = nuevosLocales;
       if (msgEl) msgEl.textContent = 'Nombre guardado ✓';
     } else if (msgEl){
       msgEl.textContent = 'No se pudo guardar el nombre.';
@@ -880,9 +967,10 @@
     const nuevosLocales = { ...state.locales, [numero]: record };
     const nuevoHistorial = { ...state.historial, [numero]: histArr };
 
-    const ok = await safeSet(DATA_KEY, {
-      index: nuevoIndex, locales: nuevosLocales, historial: nuevoHistorial, config: state.config
-    }, false);
+    state.index = nuevoIndex;
+    state.locales = nuevosLocales;
+    state.historial = nuevoHistorial;
+    const ok = await persistAll();
 
     btn.disabled = false; btn.textContent = 'Guardar y generar recibo';
 
@@ -1024,9 +1112,10 @@
     }
     nuevosLocales[newNumero] = nuevoRecord;
 
-    const ok = await safeSet(DATA_KEY, {
-      index: nuevoIndex, locales: nuevosLocales, historial: nuevoHistorial, config: state.config
-    }, false);
+    state.index = nuevoIndex;
+    state.locales = nuevosLocales;
+    state.historial = nuevoHistorial;
+    const ok = await persistAll();
 
     if (ok){
       state.index = nuevoIndex;
@@ -1059,6 +1148,55 @@
     });
   }
 
+  function recalcGenerales(){
+    const g1a = parseFloat(document.getElementById('g1AnteriorInput')?.value) || 0;
+    const g1b = parseFloat(document.getElementById('g1ActualInput')?.value) || 0;
+    const g2a = parseFloat(document.getElementById('g2AnteriorInput')?.value) || 0;
+    const g2b = parseFloat(document.getElementById('g2ActualInput')?.value) || 0;
+    const totalGeneral = (g1b - g1a) + (g2b - g2a);
+    const totalNormales = sumaConsumoNormales();
+    const diferencia = totalGeneral - totalNormales;
+    const totalGeneralEl = document.getElementById('totalGeneralOut');
+    const diferenciaEl = document.getElementById('diferenciaOut');
+    if (totalGeneralEl) totalGeneralEl.textContent = fmt(totalGeneral) + ' m³';
+    if (diferenciaEl) diferenciaEl.textContent = fmt(diferencia) + ' m³';
+  }
+
+  async function guardarGenerales(){
+    const btn = document.getElementById('guardarGeneralesBtn');
+    const msgEl = document.getElementById('generalesMsg');
+    const g1Anterior = parseFloat(document.getElementById('g1AnteriorInput').value) || 0;
+    const g1Actual = parseFloat(document.getElementById('g1ActualInput').value) || 0;
+    const g2Anterior = parseFloat(document.getElementById('g2AnteriorInput').value) || 0;
+    const g2Actual = parseFloat(document.getElementById('g2ActualInput').value) || 0;
+
+    state.generales = {
+      g1: { lecturaAnterior: g1Anterior, lecturaActual: g1Actual },
+      g2: { lecturaAnterior: g2Anterior, lecturaActual: g2Actual }
+    };
+
+    btn.disabled = true; btn.textContent = 'Guardando…';
+    const ok = await persistAll();
+    btn.disabled = false; btn.textContent = 'Guardar lecturas generales';
+
+    if (ok){
+      msgEl.innerHTML = `<div class="msg ok">Lecturas generales guardadas.</div>`;
+      document.getElementById('content').innerHTML = renderGenerales();
+      bindGeneralesEvents();
+    } else {
+      msgEl.innerHTML = `<div class="msg err">No se pudo guardar. Intenta de nuevo.</div>`;
+    }
+  }
+
+  function bindGeneralesEvents(){
+    ['g1AnteriorInput','g1ActualInput','g2AnteriorInput','g2ActualInput'].forEach(id=>{
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', recalcGenerales);
+    });
+    const btn = document.getElementById('guardarGeneralesBtn');
+    if (btn) btn.addEventListener('click', guardarGenerales);
+  }
+
   /* ---------- MAIN RENDER ---------- */
   function render(){
     document.querySelectorAll('.tab-btn').forEach(b=>{
@@ -1075,9 +1213,12 @@
     } else if (state.tab === 'locales'){
       content.innerHTML = renderLocales();
       bindLocalesEvents();
-    } else {
+    } else if (state.tab === 'historial'){
       content.innerHTML = renderHistorial();
       bindHistorialEvents();
+    } else {
+      content.innerHTML = renderGenerales();
+      bindGeneralesEvents();
     }
   }
 
