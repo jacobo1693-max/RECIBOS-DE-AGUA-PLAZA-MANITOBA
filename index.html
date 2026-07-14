@@ -2,1160 +2,1443 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Recibos de Agua — Plaza Manitoba II</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Inventario por PO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --primary:#221D19;
-    --primary-dark:#120F0D;
-    --accent:#FF6D00;
-    --accent-deep:#C94F00;
-    --money:#D9600A;
-    --bg:#FAF6F1;
-    --surface:#FFFFFF;
-    --ink:#241B14;
-    --ink-soft:#7A6A5C;
-    --border:#E8DFD3;
-    --grid-blue:#1450A3;
-    --ok:#2F8F5B;
-    --danger:#C1443D;
-    --font-display: Georgia, 'Times New Roman', serif;
-    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-mono: 'SF Mono', 'Consolas', 'Courier New', monospace;
+    --bg:#1B1D21;
+    --surface:#24272C;
+    --surface-2:#2C3037;
+    --border:#3A3F47;
+    --text:#ECEAE4;
+    --text-dim:#9AA0A8;
+    --accent:#FF6A1A;
+    --accent-dark:#CC5514;
+    --accent-2:#3E7CB1;
+    --success:#59A96A;
+    --danger:#E2544B;
   }
   *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
   body{
-    margin:0; padding:0; background:transparent;
-    font-family: var(--font-body);
-    color: var(--ink);
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
   }
-  .app{ max-width:1000px; margin:0 auto; padding:18px 16px 60px; }
-
-  /* Header */
-  .header{
-    display:flex; align-items:center; justify-content:space-between;
-    gap:16px; padding:16px 22px; border-radius:14px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    box-shadow: inset 0 -2px 0 var(--accent);
-    color:#fff; margin-bottom:18px;
-  }
-  .header-left{display:flex; align-items:center; gap:14px;}
-  .logo-badge{
-    width:78px; height:78px; flex:none; border-radius:14px; background:#fff;
-    display:flex; align-items:center; justify-content:center; padding:8px;
-  }
-  .logo-badge img{ width:100%; height:100%; object-fit:contain; }
-  .header h1{
-    font-family: var(--font-display); font-size:32px; margin:0; font-weight:700; letter-spacing:.3px;
-  }
-  .header .sub{ font-size:14px; opacity:.85; margin-top:4px; color:var(--accent); font-weight:600; letter-spacing:.3px; }
-  .header input.periodo{
-    background:rgba(255,255,255,.1); border:1px solid rgba(255,109,0,.5); color:#fff;
-    border-radius:8px; padding:6px 10px; font-size:12.5px; font-family:var(--font-body); width:260px;
-  }
-  .header input.periodo::placeholder{color:rgba(255,255,255,.65);}
-
-  /* Tabs */
-  .tabs{ display:flex; gap:6px; margin-bottom:18px; border-bottom:1px solid var(--border); }
-  .tab-btn{
-    appearance:none; border:none; background:none; cursor:pointer;
-    font-family:var(--font-body); font-size:14px; font-weight:600; color:var(--ink-soft);
-    padding:10px 16px; border-bottom:2.5px solid transparent; margin-bottom:-1px;
-  }
-  .tab-btn.active{ color:var(--primary); border-bottom-color:var(--accent); }
-
-  .card{
-    background:var(--surface); border:1px solid var(--border); border-radius:14px;
-    padding:20px 22px; margin-bottom:18px;
-  }
-  .card h2{ font-family:var(--font-display); font-size:17px; margin:0 0 16px; color:var(--primary-dark); }
-
-  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; }
-  @media (max-width:620px){ .grid{ grid-template-columns:1fr; } }
-
-  label{ display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:5px; text-transform:uppercase; letter-spacing:.4px; }
-  input[type=text], input[type=number], input[type=date], select{
-    width:100%; padding:9px 11px; border:1px solid var(--border); border-radius:8px;
-    font-size:14.5px; font-family:var(--font-body); color:var(--ink); background:#fff;
-  }
-  input:focus, select:focus{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
-  .field{ margin-bottom:2px; }
-  .hint{ font-size:11.5px; color:var(--ink-soft); margin-top:4px; }
-
-  /* Meter readout */
-  .meters{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:6px 0 16px; }
-  @media (max-width:620px){ .meters{ grid-template-columns:1fr; } }
-  .meter-box{
-    background:var(--primary-dark); border-radius:10px; padding:12px 14px;
-    border-bottom:2px solid var(--accent);
-  }
-  .meter-box .m-label{ color:#FFB877; font-size:11px; text-transform:uppercase; letter-spacing:.6px; font-weight:600; margin-bottom:6px;}
-  .meter-box .m-value{ font-family:var(--font-mono); font-size:26px; color:#FDF3EA; letter-spacing:2px; }
-  .meter-box input{
-    background:transparent; border:none; color:#FDF3EA; font-family:var(--font-mono); font-size:26px;
-    letter-spacing:2px; width:100%; padding:0;
-  }
-  .meter-box input:focus{ outline:none; }
-
-  .calc-row{ display:flex; gap:14px; flex-wrap:wrap; margin:14px 0 4px; }
-  .calc-pill{
-    flex:1; min-width:150px; border:1px solid var(--border); border-radius:10px; padding:12px 14px; background:#F7FAFA;
-  }
-  .calc-pill .cl{ font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--ink-soft); font-weight:700; }
-  .calc-pill .cv{ font-family:var(--font-mono); font-size:22px; margin-top:4px; color:var(--primary-dark); }
-  .calc-pill.total{ background:#FBF1E4; border-color:#EAD3A8; }
-  .calc-pill.total .cv{ color:var(--money); font-weight:700; }
-
-  .actions{ display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
-  button.btn{
-    appearance:none; border:none; border-radius:9px; padding:11px 18px; font-size:14px; font-weight:700;
-    cursor:pointer; font-family:var(--font-body);
-  }
-  .btn-primary{ background:var(--primary); color:#fff; }
-  .btn-primary:hover{ background:var(--primary-dark); }
-  .btn-ghost{ background:#fff; color:var(--primary); border:1px solid var(--border); }
-  .btn-ghost:hover{ border-color:var(--accent); }
-  button.btn:disabled{ opacity:.5; cursor:not-allowed; }
-
-  .msg{ font-size:13px; padding:9px 12px; border-radius:8px; margin-top:10px; }
-  .msg.ok{ background:#E4F4EA; color:var(--ok); }
-  .msg.err{ background:#FBEAE8; color:var(--danger); }
-
-  /* Table */
-  table{ width:100%; border-collapse:collapse; font-size:13.5px; border:3px solid var(--grid-blue); }
-  th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:#000; font-weight:800; padding:8px 10px; border:3px solid var(--grid-blue); background:#EAF1FB;}
-  td{ padding:9px 10px; border:3px solid var(--grid-blue); color:#000; font-weight:600; }
-  tr:hover td{ background:#FBF6EF; }
-  td.num, th.num{ text-align:right; font-family:var(--font-mono); }
-  .row-btn{ background:none; border:1px solid var(--border); border-radius:6px; padding:4px 9px; font-size:12px; cursor:pointer; color:var(--primary); font-weight:600;}
-  .row-btn:hover{ border-color:var(--accent); }
-
-  .summary-bar{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
-  .summary-chip{ background:#fff; border:1px solid var(--border); border-radius:10px; padding:12px 16px; flex:1; min-width:150px; }
-  .summary-chip .sl{ font-size:11px; text-transform:uppercase; color:var(--ink-soft); font-weight:700; letter-spacing:.4px; }
-  .summary-chip .sv{ font-family:var(--font-mono); font-size:21px; color:var(--primary-dark); margin-top:3px; }
-  .summary-chip.money .sv{ color:var(--money); }
-
-  .search-bar{ margin-bottom:12px; }
-
-  /* Receipt */
-  .receipt{
-    border:1.5px dashed var(--accent); border-radius:12px; padding:20px 24px; background:#FEFCFA; margin-top:6px;
+  #app{
+    width:100%;
+    max-width:560px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    background:var(--bg);
     position:relative;
   }
-  .receipt-head{ display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:14px;}
-  .receipt-head .plaza-block{ display:flex; align-items:center; gap:10px; }
-  .receipt-head .mini-logo{ width:52px; height:52px; object-fit:contain; flex:none; }
-  .receipt-head .plaza{ font-family:var(--font-display); font-size:26px; color:var(--primary-dark); font-weight:700; }
-  .receipt-head .addr{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
-  .receipt-head .tag{ font-size:11px; font-weight:700; letter-spacing:1px; color:var(--accent); text-transform:uppercase; }
-  .copy-badge{
-    display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;
-    padding:3px 10px; border-radius:20px; margin-top:5px;
+  header.top{
+    padding:18px 18px 14px;
+    border-bottom:1px solid var(--border);
+    position:sticky;
+    top:0;
+    background:var(--bg);
+    z-index:20;
   }
-  .copy-badge.original{ background:#1F1D1B; color:#FFC07A; }
-  .copy-badge.copia{ background:#EFE7DC; color:var(--ink-soft); border:1px solid var(--border); }
-  .receipt-rows{ width:100%; border-collapse:collapse; font-size:14px; margin-bottom:14px; border:3px solid var(--grid-blue); }
-  .receipt-rows td{ padding:8px 12px; border:3px solid var(--grid-blue); color:#000; }
-  .receipt-rows .k{ color:#000; background:#EAF1FB; font-weight:800; width:48%; }
-  .receipt-rows .v{ font-weight:800; text-align:right; font-family:var(--font-mono); color:#000; }
-  .receipt-total{
-    display:flex; justify-content:space-between; align-items:center; background:var(--primary-dark);
-    border-radius:10px; padding:14px 18px; color:#fff; margin-top:6px;
+  header.top h1{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:800;
+    font-size:26px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    margin:0;
+    display:flex;
+    align-items:center;
+    gap:10px;
   }
-  .receipt-total .tl{ font-size:13px; text-transform:uppercase; letter-spacing:.5px; opacity:.85; }
-  .receipt-total .tv{ font-family:var(--font-mono); font-size:28px; font-weight:700; color:#FFC07A; }
-  .receipt-due{ font-size:12px; color:var(--ink-soft); margin-top:10px; text-align:right; }
-
-  .cut-line{
-    display:flex; align-items:center; gap:8px; margin:16px 0; color:var(--ink-soft); font-size:11px;
+  header.top h1 .dot{
+    width:10px;height:10px;border-radius:50%;
+    background:var(--accent);
+    display:inline-block;
   }
-  .cut-line::before, .cut-line::after{ content:''; flex:1; border-top:1.5px dashed var(--border); }
-
-  .storage-warning{
-    background:#FBEAE8; border:1px solid #EFC3BF; color:#8A2E28; border-radius:10px;
-    padding:12px 16px; font-size:13px; margin-bottom:16px; line-height:1.5;
+  header.top .sync{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--text-dim);
+    margin-top:4px;
+    letter-spacing:.3px;
   }
-  .storage-warning b{ display:block; margin-bottom:3px; }
-  .storage-info{
-    background:#E7F1F4; border:1px solid #C4DEE5; color:#255A68; border-radius:10px;
-    padding:10px 16px; font-size:12.5px; margin-bottom:16px; line-height:1.5;
+  .load-error{
+    background:#3A2020;
+    border-bottom:1px solid var(--danger);
+    color:#FFD6D2;
+    font-size:12px;
+    padding:10px 16px;
+    text-align:center;
+    line-height:1.5;
+    position:sticky;
+    top:0;
+    z-index:19;
+  }
+  .load-error button{
+    display:block;
+    margin:8px auto 0;
+    background:var(--danger);
+    color:#fff;
+    border:none;
+    padding:7px 16px;
+    border-radius:5px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    cursor:pointer;
+  }
+  main{
+    flex:1;
+    padding:16px 16px 100px;
+    overflow-y:auto;
+  }
+  .hidden{display:none !important;}
+
+  /* --- Form elements --- */
+  label.field-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    display:block;
+    margin-bottom:6px;
+  }
+  .field{margin-bottom:16px;}
+  input[type=text], input[type=number]{
+    width:100%;
+    background:var(--surface);
+    border:1px solid var(--border);
+    color:var(--text);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:18px;
+    padding:14px 12px;
+    border-radius:6px;
+    outline:none;
+  }
+  input[type=text]:focus, input[type=number]:focus{
+    border-color:var(--accent);
+  }
+  .desc-preview{
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    color:var(--text-dim);
+    margin-top:6px;
+    min-height:16px;
+  }
+  .desc-preview.match{color:var(--success);}
+  .desc-preview.new{color:var(--accent);}
+
+  .qty-row{
+    display:flex;
+    align-items:stretch;
+    gap:8px;
+  }
+  .qty-btn{
+    width:52px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    font-size:22px;
+    font-weight:700;
+    border-radius:6px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .qty-btn:active{background:var(--accent);border-color:var(--accent);}
+  .qty-value{
+    flex:1;
+    text-align:center;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:22px;
+    font-weight:700;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:6px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .primary-btn{
+    width:100%;
+    background:var(--accent);
+    color:#161719;
+    border:none;
+    padding:16px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:800;
+    font-size:19px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    border-radius:8px;
+    cursor:pointer;
+    margin-top:4px;
+  }
+  .primary-btn:active{background:var(--accent-dark);}
+  .primary-btn:disabled{background:var(--surface-2);color:var(--text-dim);cursor:not-allowed;}
+  .scan-btn{
+    background:var(--accent-2);
+    color:#0d1b26;
+    margin-bottom:6px;
+  }
+  .scan-btn:active{background:#2f6595;}
+  .scan-btn:disabled{background:var(--surface-2);color:var(--text-dim);}
+  .scan-hint{
+    font-size:11px;
+    color:var(--text-dim);
+    text-align:center;
+    margin-bottom:18px;
+  }
+  .ocr-debug{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:10px 12px;
+    margin:-10px 0 16px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--text-dim);
+    line-height:1.5;
+    max-height:120px;
+    overflow-y:auto;
+  }
+  .ocr-debug .ocr-title{
+    color:var(--text);
+    font-weight:600;
+    display:block;
+    margin-bottom:4px;
   }
 
-  .empty{ text-align:center; padding:30px 10px; color:var(--ink-soft); font-size:13.5px; }
-  .loading{ text-align:center; padding:40px 10px; color:var(--ink-soft); }
+  .new-code-box{
+    background:var(--surface);
+    border:1px dashed var(--accent);
+    border-radius:6px;
+    padding:12px;
+    margin-top:10px;
+  }
+  .new-code-box label.field-label{margin-bottom:6px;}
 
-  select#localSelect optgroup{font-weight:700;}
+  /* --- Ticket stub (signature element) --- */
+  .stub{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:12px 14px 12px 16px;
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+  .stub::before{
+    content:'';
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:5px;
+    background:var(--accent);
+  }
+  .stub-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .stub-code{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:14px;
+    color:var(--text);
+  }
+  .stub-desc{
+    font-size:12px;
+    color:var(--text-dim);
+    margin-top:2px;
+  }
+  .stub-po{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    background:var(--accent-2);
+    color:#0d1b26;
+    padding:2px 8px;
+    border-radius:10px;
+    white-space:nowrap;
+    font-weight:600;
+  }
+  .stub-qty{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:700;
+    font-size:18px;
+    color:var(--accent);
+  }
+  .stub-time{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    color:var(--text-dim);
+    margin-top:4px;
+  }
+  .undo-link{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--danger);
+    background:none;
+    border:none;
+    cursor:pointer;
+    text-decoration:underline;
+    padding:0;
+    margin-top:6px;
+  }
 
-  #printArea{ display:none; }
+  h2.section-title{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin:22px 0 10px;
+  }
+  h2.section-title:first-child{margin-top:4px;}
 
+  /* --- Inventory list --- */
+  .search-box{margin-bottom:14px;}
+  .art-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:6px;
+    margin-bottom:8px;
+    overflow:hidden;
+  }
+  .art-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:13px 14px;
+    cursor:pointer;
+  }
+  .art-code{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:14px;}
+  .art-desc{font-size:12px;color:var(--text-dim);margin-top:2px;}
+  .art-total{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:800;
+    font-size:22px;
+    color:var(--accent);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .chevron{transition:transform .15s ease;color:var(--text-dim);font-size:12px;}
+  .art-card.open .chevron{transform:rotate(90deg);}
+  .po-breakdown{
+    display:none;
+    border-top:1px solid var(--border);
+    padding:8px 14px 12px;
+  }
+  .art-card.open .po-breakdown{display:block;}
+  .po-line{
+    display:flex;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    padding:6px 0;
+    border-bottom:1px dashed var(--border);
+  }
+  .po-line:last-child{border-bottom:none;}
+  .po-line .po-tag{color:var(--accent-2);}
+  .po-line .po-qty{font-weight:700;margin-left:auto;margin-right:10px;}
+  .print-btn{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    font-size:13px;
+    padding:3px 8px;
+    border-radius:4px;
+    cursor:pointer;
+  }
+  .print-btn:active{border-color:var(--accent);color:var(--accent);}
+  .print-all-btn{
+    background:none;
+    border:1px solid var(--accent-2);
+    color:var(--accent-2);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    padding:4px 9px;
+    border-radius:12px;
+    cursor:pointer;
+    margin-top:8px;
+  }
+
+  /* --- Close inventory bar --- */
+  .close-bar{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:12px 14px;
+    margin-bottom:14px;
+  }
+  .close-info{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--text-dim);
+    margin-bottom:8px;
+    line-height:1.5;
+  }
+  .secondary-btn{
+    width:100%;
+    background:none;
+    border:1px solid var(--danger);
+    color:var(--danger);
+    padding:11px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .secondary-btn:active{background:var(--danger);color:#161719;}
+
+  /* --- Historial --- */
+  .hist-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:6px;
+    margin-bottom:8px;
+    overflow:hidden;
+  }
+  .hist-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:13px 14px;
+    cursor:pointer;
+  }
+  .hist-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:.5px;text-transform:uppercase;}
+  .hist-meta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);margin-top:2px;}
+  .hist-body{
+    display:none;
+    border-top:1px solid var(--border);
+    padding:10px 14px 14px;
+  }
+  .hist-card.open .hist-body{display:block;}
+  .hist-card.open .chevron{transform:rotate(90deg);}
+  .hist-del{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--danger);
+    background:none;border:none;cursor:pointer;text-decoration:underline;
+    margin-top:10px;
+  }
+
+  /* --- Printable labels (hidden on screen) --- */
+  #printArea{display:none;}
   @media print{
-    body > *:not(#printArea){ display:none !important; }
-    #printArea{ display:block !important; }
-    #printArea .receipt{ border:none; border-radius:0; background:#fff; padding:0 6px; }
-    #printArea .receipt-page{ page-break-after:always; padding:18px 6px; }
-    #printArea .receipt-page:last-child{ page-break-after:auto; }
-    .no-print{ display:none !important; }
+    #app > *:not(#printArea){display:none !important;}
+    #printArea{display:block !important;}
+    body{background:#fff;}
+    .print-label{
+      width:3.6in;
+      padding:0.25in;
+      border:1px solid #000;
+      box-sizing:border-box;
+      page-break-after:always;
+      font-family:'IBM Plex Mono',monospace;
+      color:#000;
+    }
+    .print-label:last-child{page-break-after:auto;}
+    .print-label .pl-po{font-size:16pt;font-weight:700;}
+    .print-label .pl-item{font-size:16pt;font-weight:700;margin-top:5pt;}
+    .print-label .pl-desc{font-size:10pt;margin-top:8pt;text-transform:uppercase;}
+    .print-label .pl-count{font-size:22pt;font-weight:800;margin-top:14pt;text-align:right;}
+
+    .print-report{font-family:'IBM Plex Mono',monospace;color:#000;padding:0.3in;}
+    .print-report h1{font-size:18pt;margin:0 0 4pt;}
+    .print-report .rep-meta{font-size:10pt;color:#333;margin-bottom:16pt;}
+    .print-report .rep-article{margin-bottom:16pt;page-break-inside:avoid;}
+    .print-report .rep-code{font-size:13pt;font-weight:700;}
+    .print-report .rep-desc{font-size:10pt;margin-bottom:6pt;}
+    .print-report table{width:100%;border-collapse:collapse;font-size:10pt;}
+    .print-report th, .print-report td{border:1px solid #000;padding:4pt 8pt;text-align:left;}
+    .print-report .rep-total-row td{font-weight:700;}
   }
+
+  .empty-state{
+    text-align:center;
+    padding:40px 20px;
+    color:var(--text-dim);
+  }
+  .empty-state .big{font-family:'Barlow Condensed',sans-serif;font-size:20px;text-transform:uppercase;letter-spacing:1px;color:var(--text);margin-bottom:6px;}
+
+  /* --- Catalog --- */
+  .cat-row{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:10px 12px;
+    margin-bottom:8px;
+  }
+  .cat-row input{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    padding:8px;
+    border-radius:4px;
+  }
+  .cat-row input.code-in{width:118px;flex-shrink:0;}
+  .cat-row input.desc-in{flex:1;}
+  .del-btn{
+    background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:4px 6px;
+  }
+  .add-cat-btn{
+    width:100%;
+    background:var(--surface-2);
+    border:1px dashed var(--border);
+    color:var(--text-dim);
+    padding:12px;
+    border-radius:6px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    cursor:pointer;
+    margin-top:4px;
+  }
+
+  /* --- Bottom nav --- */
+  nav.bottom{
+    position:sticky;
+    bottom:0;
+    display:flex;
+    background:var(--surface);
+    border-top:1px solid var(--border);
+    z-index:20;
+  }
+  nav.bottom button{
+    flex:1;
+    background:none;
+    border:none;
+    color:var(--text-dim);
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+    padding:12px 4px 10px;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+  nav.bottom button.active{color:var(--accent);}
+  nav.bottom svg{width:20px;height:20px;}
+
+  .toast{
+    position:fixed;
+    bottom:78px;
+    left:50%;
+    transform:translateX(-50%) translateY(10px);
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:9px 16px;
+    border-radius:20px;
+    font-size:12px;
+    font-family:'IBM Plex Mono',monospace;
+    opacity:0;
+    transition:opacity .2s ease, transform .2s ease;
+    pointer-events:none;
+    z-index:50;
+    max-width:88%;
+    text-align:center;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast.err{border-color:var(--danger);color:var(--danger);}
 </style>
 </head>
 <body>
-<div class="app">
+<div id="app">
 
-  <div class="header">
-    <div class="header-left">
-      <div class="logo-badge"><img id="logoImg" alt="Logo Plaza Manitoba II"></div>
-      <div>
-        <h1 id="plazaNombre">Plaza Manitoba II</h1>
-        <div class="sub">Sistema de Recibos de Agua</div>
+  <header class="top">
+    <h1><span class="dot"></span>Inventario · PO</h1>
+    <div class="sync" id="syncStatus">cargando…</div>
+  </header>
+
+  <div class="load-error hidden" id="loadError">
+    ⚠️ No se pudo confirmar tu inventario guardado (problema de conexión). Para no arriesgar borrar información, no se guardará nada hasta reconectar.
+    <button id="retryLoadBtn">Reintentar ahora</button>
+  </div>
+
+  <main>
+
+    <!-- ===== TAB: REGISTRAR ===== -->
+    <section id="tab-registrar">
+      <h2 class="section-title">Registrar entrada</h2>
+
+      <button class="primary-btn scan-btn" id="scanBtn">📷 Escanear etiqueta</button>
+      <input type="file" accept="image/*" capture="environment" id="scanInput" class="hidden">
+      <div class="scan-hint" id="scanHint">Toma una foto de la etiqueta — se llenan el PO y el código solos.</div>
+      <div class="ocr-debug hidden" id="ocrDebug"></div>
+
+      <div class="field">
+        <label class="field-label">Número de PO</label>
+        <input type="text" id="poInput" list="poList" placeholder="Ej. 14466 (como dice P.O en la etiqueta)" autocomplete="off">
+        <datalist id="poList"></datalist>
       </div>
-    </div>
-    <input class="periodo no-print" id="periodoInput" type="text" placeholder="Periodo actual, ej. 01 MAYO AL 30 JUNIO 2026">
-  </div>
 
-  <div id="storageWarning"></div>
+      <div class="field">
+        <label class="field-label">Código (ITEM NO.)</label>
+        <input type="text" id="codeInput" list="codeList" placeholder="Ej. 13-00124-06" autocomplete="off">
+        <datalist id="codeList"></datalist>
+        <div class="desc-preview" id="descPreview"></div>
+        <div class="new-code-box hidden" id="newCodeBox">
+          <label class="field-label">Este código es nuevo — descripción</label>
+          <input type="text" id="newDescInput" placeholder="Ej. Summit 48 T">
+        </div>
+      </div>
 
-  <div class="tabs no-print">
-    <button class="tab-btn active" data-tab="nuevo">Nuevo Recibo</button>
-    <button class="tab-btn" data-tab="locales">Locales</button>
-    <button class="tab-btn" data-tab="historial">Historial</button>
-  </div>
+      <div class="field">
+        <label class="field-label">Cantidad</label>
+        <div class="qty-row">
+          <button class="qty-btn" id="qtyMinus">−</button>
+          <div class="qty-value" id="qtyValue">1</div>
+          <button class="qty-btn" id="qtyPlus">+</button>
+        </div>
+      </div>
 
-  <div id="loading" class="loading">Cargando información guardada…</div>
-  <div id="content" style="display:none;"></div>
+      <button class="primary-btn" id="addBtn">Agregar al inventario</button>
 
+      <h2 class="section-title">Últimos movimientos</h2>
+      <div id="recentList"></div>
+    </section>
+
+    <!-- ===== TAB: INVENTARIO ===== -->
+    <section id="tab-inventario" class="hidden">
+      <div class="close-bar">
+        <div class="close-info" id="closeInfo"></div>
+        <button class="print-all-btn" id="fullReportBtn" style="margin-top:0;margin-bottom:10px;display:block;width:100%;text-align:center;padding:9px;">📄 Imprimir reporte completo del inventario actual</button>
+        <button class="secondary-btn" id="closeInvBtn">Cerrar inventario de hoy</button>
+      </div>
+      <div class="field search-box">
+        <input type="text" id="searchInput" placeholder="Buscar por código o descripción…">
+      </div>
+      <div id="invList"></div>
+    </section>
+
+    <!-- ===== TAB: CATALOGO ===== -->
+    <section id="tab-catalogo" class="hidden">
+      <div class="field search-box">
+        <input type="text" id="catSearchInput" placeholder="Buscar en catálogo…">
+      </div>
+      <div id="catList"></div>
+      <button class="add-cat-btn" id="addCatBtn">+ Agregar artículo al catálogo</button>
+    </section>
+
+    <!-- ===== TAB: HISTORIAL ===== -->
+    <section id="tab-historial" class="hidden">
+      <h2 class="section-title">Inventarios cerrados</h2>
+      <div id="histList"></div>
+    </section>
+
+  </main>
+
+  <div id="printArea"></div>
+
+  <nav class="bottom">
+    <button class="tab-btn active" data-tab="registrar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      Registrar
+    </button>
+    <button class="tab-btn" data-tab="inventario">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Inventario
+    </button>
+    <button class="tab-btn" data-tab="catalogo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Catálogo
+    </button>
+    <button class="tab-btn" data-tab="historial">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      Historial
+    </button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
 </div>
-<div id="printArea"></div>
 
 <script>
 (function(){
-  const LOGO_DATA_URI = 'data:image/png;base64,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';
-  const SEED = [
-    {"numero":"48","fecha":"2026-05-01","lecturaActual":1188,"lecturaAnterior":1176,"precioM3":30},
-    {"numero":"49","fecha":"2026-05-01","lecturaActual":268,"lecturaAnterior":268,"precioM3":30},
-    {"numero":"50","fecha":"2026-05-01","lecturaActual":328,"lecturaAnterior":324,"precioM3":30},
-    {"numero":"51","fecha":"2026-05-01","lecturaActual":138,"lecturaAnterior":138,"precioM3":30},
-    {"numero":"52","fecha":"2026-05-01","lecturaActual":2892,"lecturaAnterior":2865,"precioM3":30},
-    {"numero":"53","fecha":"2026-05-01","lecturaActual":657,"lecturaAnterior":654,"precioM3":30},
-    {"numero":"54","fecha":"2026-05-01","lecturaActual":363,"lecturaAnterior":363,"precioM3":30},
-    {"numero":"55","fecha":"2026-05-01","lecturaActual":498,"lecturaAnterior":495,"precioM3":30},
-    {"numero":"56","fecha":"2026-05-01","lecturaActual":671,"lecturaAnterior":666,"precioM3":30},
-    {"numero":"57","fecha":"2026-05-01","lecturaActual":820,"lecturaAnterior":816,"precioM3":30},
-    {"numero":"58","fecha":"2026-05-01","lecturaActual":911,"lecturaAnterior":875,"precioM3":30},
-    {"numero":"59","fecha":"2026-05-01","lecturaActual":101,"lecturaAnterior":100,"precioM3":30},
-    {"numero":"60","fecha":"2026-05-01","lecturaActual":2543,"lecturaAnterior":2394,"precioM3":30},
-    {"numero":"33","fecha":"2026-05-01","lecturaActual":5160,"lecturaAnterior":5124,"precioM3":30},
-    {"numero":"34","fecha":"2026-05-01","lecturaActual":334,"lecturaAnterior":326,"precioM3":30},
-    {"numero":"35","fecha":"2026-05-01","lecturaActual":1366,"lecturaAnterior":1363,"precioM3":30},
-    {"numero":"36","fecha":"2026-05-01","lecturaActual":326,"lecturaAnterior":316,"precioM3":30},
-    {"numero":"37","fecha":"2026-05-01","lecturaActual":618,"lecturaAnterior":600,"precioM3":30},
-    {"numero":"38","fecha":"2026-05-01","lecturaActual":18,"lecturaAnterior":18,"precioM3":30},
-    {"numero":"39","fecha":"2026-05-01","lecturaActual":196,"lecturaAnterior":194,"precioM3":30},
-    {"numero":"40","fecha":"2026-05-01","lecturaActual":57,"lecturaAnterior":54,"precioM3":30},
-    {"numero":"19","fecha":"2026-05-01","lecturaActual":17881,"lecturaAnterior":17623,"precioM3":30},
-    {"numero":"20","fecha":"2026-05-01","lecturaActual":460,"lecturaAnterior":457,"precioM3":30},
-    {"numero":"21","fecha":"2026-05-01","lecturaActual":168,"lecturaAnterior":164,"precioM3":30},
-    {"numero":"23","fecha":"2026-05-01","lecturaActual":620,"lecturaAnterior":609,"precioM3":30},
-    {"numero":"25","fecha":"2023-02-15","lecturaActual":649,"lecturaAnterior":603,"precioM3":15},
-    {"numero":"24","fecha":"2026-05-01","lecturaActual":548,"lecturaAnterior":546,"precioM3":30},
-    {"numero":"26","fecha":"2026-05-01","lecturaActual":6914,"lecturaAnterior":6794,"precioM3":23.2},
-    {"numero":"A LA HUELTA","fecha":"2026-05-01","lecturaActual":1001,"lecturaAnterior":957,"precioM3":30},
-    {"numero":"CASA WALTER","fecha":"2023-02-15","lecturaActual":8535,"lecturaAnterior":8437,"precioM3":30},
-    {"numero":"29","fecha":"2026-05-01","lecturaActual":134,"lecturaAnterior":130,"precioM3":30},
-    {"numero":"PINTURAS","fecha":"2023-02-15","lecturaActual":8910,"lecturaAnterior":8892,"precioM3":30},
-    {"numero":"42","fecha":"2026-05-01","lecturaActual":99,"lecturaAnterior":99,"precioM3":30},
-    {"numero":"43","fecha":"2026-05-01","lecturaActual":551,"lecturaAnterior":547,"precioM3":30},
-    {"numero":"27","fecha":"2026-05-01","lecturaActual":660,"lecturaAnterior":660,"precioM3":30},
-    {"numero":"28","fecha":"2026-05-01","lecturaActual":1714,"lecturaAnterior":1709,"precioM3":30},
-    {"numero":"ESTAFETA","fecha":"2026-05-01","lecturaActual":685,"lecturaAnterior":613,"precioM3":30},
-    {"numero":"JARDIN","fecha":"2026-05-01","lecturaActual":1443,"lecturaAnterior":1424,"precioM3":30},
-    {"numero":"LOCAL 27","fecha":"2026-05-01","lecturaActual":89,"lecturaAnterior":89,"precioM3":30},
-    {"numero":"30 31 32","fecha":"2026-05-01","lecturaActual":721,"lecturaAnterior":721,"precioM3":30},
-    {"numero":"SCELI","fecha":"2026-05-01","lecturaActual":181,"lecturaAnterior":162,"precioM3":30}
+  "use strict";
+
+  // ---------- Seed catalog (from label sheet) ----------
+  const SEED_CATALOG = [
+    ["13-00124-02","Summit 48 T"],["13-00123-02","Summit 48 C"],
+    ["13-00124-03","Summit 60 T"],["13-00123-03","Summit 60 C"],
+    ["13-00124-04","Summit 72 T"],["13-00123-04","Summit 72 C"],
+    ["13-00124-05","Summit 84 T"],["13-00123-05","Summit 84 C"],
+    ["13-00124-06","Summit 96 T"],["13-00123-06","Summit 96 C"],
+    ["02-00134-02","BR 36\" 1/2"],["02-00134-03","BR 48\" 1/2"],
+    ["02-00750-01","BR 48\" Trad"],["02-00134-04","BR 60\" 1/2"],
+    ["02-00750-02","BR 60\" Trad"],["02-00134-05","BR 72\" 1/2"],
+    ["02-00750-03","BR 72\" Trad"],["02-00134-06","BR 84\" 1/2"],
+    ["02-00750-04","BR 84\" Trad"],["02-00134-07","BR 96\" 1/2"],
+    ["02-00750-05","BR 96\" Trad"],["13-00050-01","2 BR 18"],
+    ["13-00050-02","2 BR 21"],["13-00050-03","2 BR 24"],
+    ["13-00050-04","2 BR 30"],["13-00050-05","2 BR 36"],
+    ["13-00050-06","2 BR 42"],["13-00049-01","3 BR 18\""],
+    ["13-00049-02","3 BR 24"],["13-00049-03","3 BR 30"],
+    ["13-00049-05","3 BR 42"],["02-00721-01","Lava 18"],
+    ["02-00721-02","Lava 24"],["02-00721-03","Lava 30"],
+    ["02-00721-04","Lava 36"],["13-00049-04","ojo"],
+    ["13-00049-06","ojo"],["02-00746","DEXEN RECIVER"]
   ];
 
-  const DIRECCION_PLAZA = 'KM 7 CARR A ALVARO OBREGON';
+  // ---------- State ----------
+  let catalog = {};      // code -> description
+  let inventory = {};    // "code||po" -> qty
+  let log = [];          // [{id,code,po,qty,ts}] newest first
+  let closedInventories = []; // [{id,label,closedAt,startedAt,inventory,totalPieces}] newest first
+  let countStartedAt = Date.now();
+  let currentQty = 1;
+  let lastSnapshot = "";
+  let dataReady = false;   // true only after we've confirmed real (or safely-bootstrapped) data from storage
+  let hasEverSaved = false; // true once we know this install has saved data before ('hasData' sentinel)
 
-  let state = {
-    tab: 'nuevo',
-    index: [],
-    locales: {},   // numero -> record
-    historial: {}, // numero -> array
-    config: { nombrePlaza:'Plaza Manitoba II', periodoLabel:'' },
-    currentLocal: null,
-    lastReceipt: null,
-    historialLocal: '__todos__',
-    editingLocal: null
-  };
+  const $ = id => document.getElementById(id);
 
-  function fmt(n){
-    if (n === null || n === undefined || isNaN(n)) return '—';
-    return Number(n).toLocaleString('es-MX', {maximumFractionDigits:2});
-  }
-  function money(n){
-    if (n === null || n === undefined || isNaN(n)) return '$0.00';
-    return '$' + Number(n).toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
-  }
-  function addDays(dateStr, days){
-    const d = new Date(dateStr + 'T00:00:00');
-    d.setDate(d.getDate() + days);
-    return d.toISOString().slice(0,10);
-  }
-  function fechaBonita(dateStr){
-    if(!dateStr) return '—';
-    const d = new Date(dateStr + 'T00:00:00');
-    return d.toLocaleDateString('es-MX', {day:'2-digit', month:'long', year:'numeric'});
-  }
+  // ---------- Storage helpers ----------
+  function delay(ms){ return new Promise(res=>setTimeout(res, ms)); }
 
-  const DATA_KEY = 'agua-app-data-v2';
-  let lastStorageError = '';
-  let storageBackend = 'claude'; // 'claude' | 'local' | 'none' — se decide en checarStorage()
-
-  function wait(ms){ return new Promise(r=>setTimeout(r, ms)); }
-
-  function lsAvailable(){
-    try{
-      const k = '__ls_test__';
-      window.localStorage.setItem(k, '1');
-      window.localStorage.removeItem(k);
-      return true;
-    }catch(e){ return false; }
-  }
-
-  async function safeGet(key, shared, attempt){
-    if (storageBackend === 'local'){
-      try{ return window.localStorage.getItem(key); }
-      catch(e){ lastStorageError = (e && e.message) ? e.message : String(e); return null; }
-    }
-    if (storageBackend === 'none') return null;
-    attempt = attempt || 1;
-    try{
-      const r = await window.storage.get(key, !!shared);
-      return r ? r.value : null;
-    }catch(e){
-      lastStorageError = (e && e.message) ? e.message : String(e);
-      console.error('safeGet falló (intento ' + attempt + '):', e);
-      if (attempt < 3){
-        await wait(attempt * 500);
-        return safeGet(key, shared, attempt + 1);
+  // Intenta leer una clave varias veces antes de darse por vencido.
+  // Devuelve {ok:true, value} si lo logró, o {ok:false} si falló en todos los intentos.
+  async function fetchWithRetry(key, retries=5, waitMs=500){
+    for(let i=0;i<retries;i++){
+      try{
+        const r = await window.storage.get(key, false);
+        return { ok:true, value: r ? r.value : null };
+      }catch(e){
+        if(i < retries-1) await delay(waitMs);
       }
-      return null;
     }
-  }
-  async function safeSet(key, value, shared, attempt){
-    const v = typeof value === 'string' ? value : JSON.stringify(value);
-    if (storageBackend === 'local'){
-      try{ window.localStorage.setItem(key, v); return true; }
-      catch(e){ lastStorageError = (e && e.message) ? e.message : String(e); return false; }
-    }
-    if (storageBackend === 'none') return false;
-    attempt = attempt || 1;
-    try{
-      const r = await window.storage.set(key, v, !!shared);
-      if (r) return true;
-      throw new Error('storage.set devolvió vacío');
-    }catch(e){
-      lastStorageError = (e && e.message) ? e.message : String(e);
-      console.error('safeSet falló (intento ' + attempt + '):', e);
-      if (attempt < 3){
-        await wait(attempt * 500);
-        return safeSet(key, value, shared, attempt + 1);
-      }
-      return false;
-    }
-  }
-
-  function buildSeedState(){
-    const idx = [];
-    const locales = {};
-    const historial = {};
-    for (const rec of SEED){
-      idx.push(rec.numero);
-      locales[rec.numero] = {
-        numero: rec.numero,
-        nombre: '',
-        direccion: DIRECCION_PLAZA,
-        ultimaLecturaActual: rec.lecturaActual,
-        fechaUltimaLectura: rec.fecha,
-        precioM3: rec.precioM3
-      };
-      historial[rec.numero] = [{
-        fecha: rec.fecha,
-        lecturaAnterior: rec.lecturaAnterior,
-        lecturaActual: rec.lecturaActual,
-        consumo: rec.lecturaActual - rec.lecturaAnterior,
-        precioM3: rec.precioM3,
-        total: (rec.lecturaActual - rec.lecturaAnterior) * rec.precioM3,
-        fechaLimite: addDays(rec.fecha, 24),
-        guardadoEn: rec.fecha
-      }];
-    }
-    return {
-      index: idx,
-      locales,
-      historial,
-      config: { nombrePlaza:'Plaza Manitoba II', periodoLabel:'01 MARZO AL 30 DE ABRIL 2026' }
-    };
-  }
-
-  // Guarda TODO el estado (locales, historial, config, índice) en una sola llamada,
-  // para evitar perder datos por límites de peticiones al guardar muchas claves seguidas.
-  async function persistAll(){
-    return await safeSet(DATA_KEY, {
-      index: state.index,
-      locales: state.locales,
-      historial: state.historial,
-      config: state.config
-    }, false);
+    return { ok:false };
   }
 
   async function loadAll(){
-    const raw = await safeGet(DATA_KEY, false);
-    if (raw){
-      try{
-        const parsed = JSON.parse(raw);
-        state.index = parsed.index || [];
-        state.locales = parsed.locales || {};
-        state.historial = parsed.historial || {};
-        state.config = parsed.config || state.config;
-        return;
-      }catch(e){ /* si está corrupto, sembramos de nuevo abajo */ }
-    }
-    // Primera vez (o datos dañados): sembrar con los datos del archivo original y guardar todo junto
-    const seeded = buildSeedState();
-    state.index = seeded.index;
-    state.locales = seeded.locales;
-    state.historial = seeded.historial;
-    state.config = seeded.config;
-    await persistAll();
-  }
+    // Primero revisamos un "testigo" liviano: si esta instalación YA había guardado
+    // datos antes, sabemos que cualquier falla de lectura de aquí en adelante es una
+    // falla de conexión (no "todavía no hay nada"), y por lo tanto NUNCA debemos
+    // sobrescribir con datos vacíos.
+    const sentinel = await fetchWithRetry('hasData', 3, 400);
+    hasEverSaved = sentinel.ok && sentinel.value === '1';
 
-  function localesOrdenados(){
-    return [...state.index].sort((a,b)=>{
-      const na = parseInt(a,10), nb = parseInt(b,10);
-      const aNum = !isNaN(na) && String(na)===a.trim();
-      const bNum = !isNaN(nb) && String(nb)===b.trim();
-      if (aNum && bNum) return na - nb;
-      if (aNum) return -1;
-      if (bNum) return 1;
-      return a.localeCompare(b);
-    });
-  }
+    const catRes = await fetchWithRetry('catalog');
+    const invRes = await fetchWithRetry('inventory');
+    const logRes = await fetchWithRetry('log');
+    const closedRes = await fetchWithRetry('closedInventories');
+    const startRes = await fetchWithRetry('countStartedAt');
 
-  /* ---------- RENDER: Nuevo Recibo ---------- */
-  function renderNuevo(){
-    const opciones = localesOrdenados().map(n=>{
-      const rec = state.locales[n];
-      const label = rec && rec.nombre ? `${n} — ${rec.nombre}` : n;
-      return `<option value="${escAttr(n)}" ${state.currentLocal===n?'selected':''}>${esc(label)}</option>`;
-    }).join('');
+    const allOk = catRes.ok && invRes.ok && logRes.ok && closedRes.ok && startRes.ok;
 
-    const cur = state.currentLocal ? state.locales[state.currentLocal] : null;
-    const anterior = cur ? cur.ultimaLecturaActual : '';
-    const nombre = cur ? (cur.nombre||'') : '';
-    const precio = cur ? cur.precioM3 : 30;
-    const fechaLectura = document.getElementById('fechaLecturaInput') ?
-      document.getElementById('fechaLecturaInput').value : new Date().toISOString().slice(0,10);
+    if(allOk){
+      catalog = catRes.value ? JSON.parse(catRes.value) : null;
+      inventory = invRes.value ? JSON.parse(invRes.value) : {};
+      log = logRes.value ? JSON.parse(logRes.value) : [];
+      closedInventories = closedRes.value ? JSON.parse(closedRes.value) : [];
+      countStartedAt = startRes.value ? JSON.parse(startRes.value) : Date.now();
 
-    return `
-    <div class="card">
-      <h2>Seleccionar local</h2>
-      <div class="grid">
-        <div class="field">
-          <label for="localSelect">Número de local</label>
-          <select id="localSelect">
-            <option value="">— elegir local —</option>
-            ${opciones}
-            <option value="__nuevo__">+ Agregar nuevo local</option>
-          </select>
-        </div>
-        <div class="field" id="nuevoLocalWrap" style="${state.currentLocal==='__nuevo__'?'':'display:none;'}">
-          <label for="nuevoLocalInput">Número del nuevo local</label>
-          <input type="text" id="nuevoLocalInput" placeholder="Ej. 61 o nombre del local">
-        </div>
-      </div>
-    </div>
-
-    <div class="card" id="formCard" style="${state.currentLocal ? '' : 'display:none;'}">
-      <h2>Datos del recibo</h2>
-      <div class="grid">
-        <div class="field">
-          <label for="nombreInput">Nombre del local / inquilino</label>
-          <input type="text" id="nombreInput" value="${escAttr(nombre)}" placeholder="Nombre a mostrar en el recibo">
-          <div class="hint" id="nombreMsg" style="min-height:14px;"></div>
-        </div>
-        <div class="field">
-          <label for="fechaLecturaInput">Fecha de lectura</label>
-          <input type="date" id="fechaLecturaInput" value="${fechaLectura}">
-        </div>
-      </div>
-
-      <div class="meters">
-        <div class="meter-box">
-          <div class="m-label">Lectura anterior</div>
-          <input type="number" id="lecturaAnteriorInput" value="${anterior===''?'':anterior}" step="0.01">
-        </div>
-        <div class="meter-box">
-          <div class="m-label">Lectura actual</div>
-          <input type="number" id="lecturaActualInput" value="" step="0.01" placeholder="0">
-        </div>
-      </div>
-
-      <div class="grid">
-        <div class="field">
-          <label for="precioInput">Precio por m³ ($)</label>
-          <input type="number" id="precioInput" value="${precio}" step="0.01">
-        </div>
-        <div class="field">
-          <label for="fechaLimiteInput">Fecha límite de pago</label>
-          <input type="date" id="fechaLimiteInput" value="${addDays(fechaLectura,24)}">
-        </div>
-      </div>
-
-      <div class="calc-row">
-        <div class="calc-pill">
-          <div class="cl">Consumo (m³)</div>
-          <div class="cv" id="consumoOut">0</div>
-        </div>
-        <div class="calc-pill total">
-          <div class="cl">Total a pagar</div>
-          <div class="cv" id="totalOut">$0.00</div>
-        </div>
-      </div>
-
-      <div class="actions no-print">
-        <button class="btn btn-primary" id="guardarBtn">Guardar y generar recibo</button>
-        <button class="btn btn-ghost" id="limpiarBtn">Limpiar</button>
-      </div>
-      <div id="formMsg"></div>
-    </div>
-
-    <div id="receiptWrap"></div>
-    `;
-  }
-
-  function receiptMarkup(data, tipo){
-    tipo = tipo || 'ORIGINAL';
-    const badgeClass = tipo === 'ORIGINAL' ? 'original' : 'copia';
-    const nombreMostrar = data.nombre || (state.locales[data.numero] && state.locales[data.numero].nombre) || '';
-    return `
-      <div class="receipt-head">
-        <div class="plaza-block">
-          <img class="mini-logo" src="${LOGO_DATA_URI}" alt="">
-          <div>
-            <div class="plaza">${esc(state.config.nombrePlaza || 'Plaza Manitoba II')}</div>
-            <div class="addr">${esc(DIRECCION_PLAZA)}</div>
-          </div>
-        </div>
-        <div style="text-align:right;">
-          <div class="tag">Recibo de Agua</div>
-          <div class="addr">${esc(state.config.periodoLabel || '')}</div>
-          <div class="copy-badge ${badgeClass}">${esc(tipo)}</div>
-        </div>
-      </div>
-      <table class="receipt-rows">
-        <tr><td class="k">Local</td><td class="v">${esc(data.numero)}</td></tr>
-        <tr><td class="k">Nombre</td><td class="v">${esc(nombreMostrar || '—')}</td></tr>
-        <tr><td class="k">Fecha de lectura</td><td class="v">${fechaBonita(data.fecha)}</td></tr>
-        <tr><td class="k">Lectura anterior</td><td class="v">${fmt(data.lecturaAnterior)}</td></tr>
-        <tr><td class="k">Lectura actual</td><td class="v">${fmt(data.lecturaActual)}</td></tr>
-        <tr><td class="k">Consumo</td><td class="v">${fmt(data.consumo)} m³</td></tr>
-        <tr><td class="k">Precio por m³</td><td class="v">${money(data.precioM3)}</td></tr>
-      </table>
-      <div class="receipt-total">
-        <div class="tl">Total a pagar</div>
-        <div class="tv">${money(data.total)}</div>
-      </div>
-      <div class="receipt-due">Antes del día ${fechaBonita(data.fechaLimite)}</div>
-    `;
-  }
-
-  // Genera las dos copias (ORIGINAL para el inquilino, COPIA para tu control) separadas por una línea de corte.
-  function receiptPairMarkup(data){
-    return `
-      <div class="receipt">${receiptMarkup(data, 'ORIGINAL')}</div>
-      <div class="cut-line">✂ — — — — — — — — corte aquí — — — — — — — — ✂</div>
-      <div class="receipt">${receiptMarkup(data, 'COPIA')}</div>
-    `;
-  }
-
-  function renderReceipt(data){
-    if (!data) return '';
-    return `
-    <div class="card">
-      <h2>Vista previa del recibo (se imprime en original y copia)</h2>
-      <div id="receiptEl">${receiptPairMarkup(data)}</div>
-      <div class="actions no-print" style="margin-top:14px;">
-        <button class="btn btn-ghost" id="printBtn">Imprimir este recibo</button>
-      </div>
-    </div>`;
-  }
-
-  function getListaLocales(filtro){
-    filtro = (filtro||'').trim().toLowerCase();
-    return localesOrdenados()
-      .map(n=>{
-        const rec = state.locales[n];
-        const hist = state.historial[n] || [];
-        const last = hist[hist.length-1] || null;
-        return {n, rec, hist, last};
-      })
-      .filter(({n, rec}) => !filtro || n.toLowerCase().includes(filtro) || (rec && rec.nombre && rec.nombre.toLowerCase().includes(filtro)));
-  }
-
-  function printReceiptData(data){
-    const area = document.getElementById('printArea');
-    area.innerHTML = `<div class="receipt-page">${receiptPairMarkup(data)}</div>`;
-    window.print();
-  }
-
-  function printAllReceipts(){
-    const filtro = document.getElementById('filtroInput')?.value || '';
-    const lista = getListaLocales(filtro).filter(({last})=> !!last);
-    if (!lista.length){
-      alert('No hay recibos guardados para imprimir todavía.');
+      if(!catalog){
+        catalog = {};
+        SEED_CATALOG.forEach(([code,desc]) => catalog[code]=desc);
+      }
+      dataReady = true;
+      hideLoadError();
+      await saveCatalog();
+      await saveCountStart();
+      await markHasData();
       return;
     }
-    const area = document.getElementById('printArea');
-    area.innerHTML = lista.map(({n, last})=>{
-      const data = { ...last, numero: n };
-      return `<div class="receipt-page">${receiptPairMarkup(data)}</div>`;
-    }).join('');
-    window.print();
-  }
 
-  /* ---------- RENDER: Locales ---------- */
-  function renderLocales(){
-    const filtro = (document.getElementById('filtroInput')?.value || '').trim().toLowerCase();
-    const lista = getListaLocales(filtro);
-
-    let totalUltimo = 0;
-    lista.forEach(({hist})=>{
-      const last = hist[hist.length-1];
-      if (last) totalUltimo += last.total;
-    });
-
-    const filas = lista.map(({n, rec, hist})=>{
-      const last = hist[hist.length-1];
-      if (state.editingLocal === n){
-        return `<tr>
-          <td colspan="2">
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <input type="text" id="editNumInput" value="${escAttr(n)}" style="max-width:110px;" placeholder="Número de local">
-              <input type="text" id="editNombreInput" value="${escAttr(rec && rec.nombre ? rec.nombre : '')}" style="flex:1; min-width:140px;" placeholder="Nombre del inquilino">
-            </div>
-          </td>
-          <td class="num">${last ? fmt(last.lecturaActual) : '—'}</td>
-          <td>${last ? fechaBonita(last.fecha) : '—'}</td>
-          <td class="num">${last ? money(last.total) : '—'}</td>
-          <td class="no-print" style="white-space:nowrap;">
-            <button class="row-btn" data-save-edit="${escAttr(n)}">Guardar</button>
-            <button class="row-btn" data-cancel-edit="1">Cancelar</button>
-          </td>
-        </tr>`;
-      }
-      return `<tr>
-        <td>${esc(n)}</td>
-        <td>${esc(rec && rec.nombre ? rec.nombre : '—')}</td>
-        <td class="num">${last ? fmt(last.lecturaActual) : '—'}</td>
-        <td>${last ? fechaBonita(last.fecha) : '—'}</td>
-        <td class="num">${last ? money(last.total) : '—'}</td>
-        <td class="no-print" style="white-space:nowrap;">
-          <button class="row-btn" data-edit="${escAttr(n)}">Editar</button>
-          <button class="row-btn" data-local="${escAttr(n)}">Nuevo recibo</button>
-          ${last ? `<button class="row-btn" data-print="${escAttr(n)}">Imprimir</button>` : ''}
-        </td>
-      </tr>`;
-    }).join('');
-
-    return `
-    <div class="summary-bar">
-      <div class="summary-chip">
-        <div class="sl">Locales registrados</div>
-        <div class="sv">${state.index.length}</div>
-      </div>
-      <div class="summary-chip money">
-        <div class="sl">Total último periodo</div>
-        <div class="sv">${money(totalUltimo)}</div>
-      </div>
-    </div>
-    <div class="card">
-      <h2>Locales</h2>
-      <div class="grid">
-        <div class="field search-bar no-print">
-          <label for="filtroInput">Buscar por local o nombre</label>
-          <input type="text" id="filtroInput" placeholder="Ej. 48 o nombre del inquilino">
-        </div>
-      </div>
-      <div class="actions no-print" style="margin-top:2px; margin-bottom:14px;">
-        <button class="btn btn-primary" id="printAllBtn">Imprimir todos los recibos</button>
-      </div>
-      <table>
-        <thead><tr>
-          <th>Local</th><th>Nombre</th><th class="num">Última lectura</th><th>Fecha</th><th class="num">Total último recibo</th><th class="no-print"></th>
-        </tr></thead>
-        <tbody>${filas || `<tr><td colspan="6" class="empty">Sin locales que coincidan con la búsqueda.</td></tr>`}</tbody>
-      </table>
-    </div>`;
-  }
-
-  /* ---------- RENDER: Historial ---------- */
-  function renderHistorial(){
-    const sel = state.historialLocal || '__todos__';
-    const opciones = localesOrdenados().map(n=>{
-      const rec = state.locales[n];
-      const label = rec && rec.nombre ? `${n} — ${rec.nombre}` : n;
-      return `<option value="${escAttr(n)}" ${sel===n?'selected':''}>${esc(label)}</option>`;
-    }).join('');
-
-    let entradas = [];
-    if (sel === '__todos__'){
-      for (const n of state.index){
-        (state.historial[n]||[]).forEach(h => entradas.push({...h, numero:n}));
-      }
+    // No se pudo confirmar el estado real de al menos una clave.
+    if(hasEverSaved){
+      // Ya sabemos que este usuario tenía datos guardados: JAMÁS asumimos vacío.
+      // Nos quedamos con lo último que hubiera en memoria (si venimos de un refresh
+      // esto será el estado inicial vacío de la variable, así que bloqueamos guardado
+      // por completo hasta poder confirmar los datos reales).
+      dataReady = false;
+      showLoadError();
     } else {
-      (state.historial[sel]||[]).forEach(h => entradas.push({...h, numero:sel}));
+      // No hay evidencia de que haya datos previos: es razonable que sea primer uso.
+      // Sembramos el catálogo y arrancamos vacío, pero seguimos intentando confirmar
+      // en segundo plano antes de permitir guardar, por seguridad.
+      catalog = {};
+      SEED_CATALOG.forEach(([code,desc]) => catalog[code]=desc);
+      inventory = {}; log = []; closedInventories = []; countStartedAt = Date.now();
+      dataReady = false;
+      showLoadError();
     }
-    entradas.sort((a,b)=>{
-      if (a.fecha !== b.fecha) return a.fecha < b.fecha ? 1 : -1;
-      return (b.guardadoEn||'').localeCompare(a.guardadoEn||'');
-    });
-
-    const totalHistorico = entradas.reduce((s,e)=> s + (e.total||0), 0);
-
-    const filas = entradas.map((e, i)=>{
-      return `<tr>
-        <td>${esc(e.numero)}</td>
-        <td>${fechaBonita(e.fecha)}</td>
-        <td class="num">${fmt(e.lecturaAnterior)}</td>
-        <td class="num">${fmt(e.lecturaActual)}</td>
-        <td class="num">${fmt(e.consumo)}</td>
-        <td class="num">${money(e.precioM3)}</td>
-        <td class="num">${money(e.total)}</td>
-        <td class="no-print"><button class="row-btn" data-reprint="${i}">Reimprimir</button></td>
-      </tr>`;
-    }).join('');
-
-    // Stash entradas on state for the reprint handler to reference by index.
-    state._historialEntradas = entradas;
-
-    return `
-    <div class="summary-bar">
-      <div class="summary-chip">
-        <div class="sl">Recibos guardados</div>
-        <div class="sv">${entradas.length}</div>
-      </div>
-      <div class="summary-chip money">
-        <div class="sl">Total histórico</div>
-        <div class="sv">${money(totalHistorico)}</div>
-      </div>
-    </div>
-    <div class="card">
-      <h2>Historial de recibos</h2>
-      <div class="grid">
-        <div class="field no-print">
-          <label for="historialSelect">Local</label>
-          <select id="historialSelect">
-            <option value="__todos__" ${sel==='__todos__'?'selected':''}>Todos los locales</option>
-            ${opciones}
-          </select>
-        </div>
-      </div>
-      <table style="margin-top:10px;">
-        <thead><tr>
-          <th>Local</th><th>Fecha</th><th class="num">Lect. anterior</th><th class="num">Lect. actual</th>
-          <th class="num">Consumo</th><th class="num">Precio/m³</th><th class="num">Total</th><th class="no-print"></th>
-        </tr></thead>
-        <tbody>${filas || `<tr><td colspan="8" class="empty">Todavía no hay recibos guardados para este local.</td></tr>`}</tbody>
-      </table>
-    </div>`;
   }
 
+  function showLoadError(){
+    $('loadError').classList.remove('hidden');
+    $('addBtn').disabled = true;
+    $('closeInvBtn').disabled = true;
+  }
+  function hideLoadError(){
+    $('loadError').classList.add('hidden');
+    $('addBtn').disabled = false;
+    $('closeInvBtn').disabled = false;
+  }
+
+  async function markHasData(){
+    if(hasEverSaved) return;
+    try{ await window.storage.set('hasData', '1', false); hasEverSaved = true; }
+    catch(e){ /* se reintentará en el próximo guardado exitoso */ }
+  }
+
+  async function saveCatalog(){
+    if(!dataReady){ toast('No se guardó: sin conexión confirmada al almacenamiento', true); return; }
+    try{ await window.storage.set('catalog', JSON.stringify(catalog), false); await markHasData(); }
+    catch(e){ toast('No se pudo guardar el catálogo', true); }
+  }
+  async function saveInventory(){
+    if(!dataReady){ toast('No se guardó: sin conexión confirmada al almacenamiento', true); return; }
+    try{ await window.storage.set('inventory', JSON.stringify(inventory), false); await markHasData(); }
+    catch(e){ toast('No se pudo guardar el inventario', true); }
+  }
+  async function saveLog(){
+    if(!dataReady) return;
+    try{ await window.storage.set('log', JSON.stringify(log.slice(0,150)), false); }
+    catch(e){ /* non critical */ }
+  }
+  async function saveClosedInventories(){
+    if(!dataReady){ toast('No se guardó: sin conexión confirmada al almacenamiento', true); return; }
+    try{ await window.storage.set('closedInventories', JSON.stringify(closedInventories.slice(0,100)), false); }
+    catch(e){ toast('No se pudo guardar el historial', true); }
+  }
+  async function saveCountStart(){
+    if(!dataReady) return;
+    try{ await window.storage.set('countStartedAt', JSON.stringify(countStartedAt), false); }
+    catch(e){ /* non critical */ }
+  }
+
+  function toast(msg, isErr){
+    const t = $('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isErr ? ' err' : '');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(()=> t.className='toast', 2200);
+  }
+
+  function fmtTime(ts){
+    const d = new Date(ts);
+    return d.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit'}) + ' ' +
+           d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+  }
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      ['registrar','inventario','catalogo','historial'].forEach(name=>{
+        $('tab-'+name).classList.toggle('hidden', name !== btn.dataset.tab);
+      });
+      if(btn.dataset.tab === 'inventario'){ renderInventory(); renderCloseBar(); }
+      if(btn.dataset.tab === 'catalogo') renderCatalog();
+      if(btn.dataset.tab === 'historial') renderHistorial();
+    });
+  });
+
+  // ---------- Escaneo de etiqueta (OCR) ----------
+  function loadTesseract(){
+    return new Promise((resolve, reject)=>{
+      if(window.Tesseract){ resolve(); return; }
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js';
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('No se pudo cargar el lector de texto'));
+      document.head.appendChild(s);
+    });
+  }
+
+  // Mejora la foto antes de leerla: la reduce de tamaño y sube el contraste
+  // (blanco/negro), lo que ayuda mucho a leer texto impreso desde una foto de celular.
+  function preprocessImage(file){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('No se pudo abrir la foto'));
+      reader.onload = (e)=>{
+        const img = new Image();
+        img.onerror = () => reject(new Error('No se pudo abrir la foto'));
+        img.onload = ()=>{
+          const maxW = 1500;
+          const scale = Math.min(1, maxW / img.width);
+          const w = Math.max(1, Math.round(img.width * scale));
+          const h = Math.max(1, Math.round(img.height * scale));
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          try{
+            const imgData = ctx.getImageData(0,0,w,h);
+            const d = imgData.data;
+            for(let i=0;i<d.length;i+=4){
+              const gray = 0.3*d[i] + 0.59*d[i+1] + 0.11*d[i+2];
+              const v = gray > 165 ? 255 : (gray < 100 ? 0 : gray);
+              d[i]=d[i+1]=d[i+2]=v;
+            }
+            ctx.putImageData(imgData,0,0);
+          }catch(err){ /* si falla el contraste, seguimos con la imagen normal */ }
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function showOcrDebug(text){
+    const box = $('ocrDebug');
+    box.classList.remove('hidden');
+    box.innerHTML = `<span class="ocr-title">Texto que alcancé a leer:</span>${esc(text.trim() || '(nada — la foto no se pudo leer)')}`;
+  }
+
+  function parseLabelText(text){
+    const clean = text.replace(/\n/g,' ').replace(/\s+/g,' ');
+    const found = [];
+
+    // Tolerante a que el OCR lea "O" como "0" y a que falten los puntos
+    const poMatch = clean.match(/P\s*[.\s]?\s*[O0]\s*\.?\s*[:\-]?\s*(\d{3,7})/i);
+    if(poMatch){
+      $('poInput').value = poMatch[1];
+      found.push('PO ' + poMatch[1]);
+    }
+
+    let itemMatch = clean.match(/ITEM\s*N[O0]\.?\s*[:\-]?\s*([0-9]{2}\s*[-_\s]\s*[0-9]{3,6}\s*[-_\s]\s*[0-9]{2})/i)
+                  || clean.match(/ITEM\s*N[O0]\.?\s*[:\-]?\s*([0-9]{2}\s*[-_\s]\s*[0-9]{3,6})/i);
+    // Respaldo: si no encontró la etiqueta "ITEM NO." pero sí hay un código con ese formato en el texto
+    if(!itemMatch){
+      itemMatch = clean.match(/([0-9]{2}\s*-\s*[0-9]{4,6}\s*-\s*[0-9]{2})/);
+    }
+    if(itemMatch){
+      const code = itemMatch[1].replace(/[\s_]/g,'-').replace(/-+/g,'-');
+      $('codeInput').value = code;
+      $('codeInput').dispatchEvent(new Event('input'));
+      found.push('código ' + code);
+    }
+
+    const descMatch = clean.match(/DESCRIPTION\s*[:\-]?\s*(.+)$/i);
+    if(descMatch && !$('newCodeBox').classList.contains('hidden')){
+      $('newDescInput').value = descMatch[1].trim().slice(0,120);
+    }
+
+    if(found.length){
+      toast('Detectado: ' + found.join(' · ') + ' — verifica antes de agregar');
+    } else {
+      toast('No pude reconocer el PO ni el código — revisa el texto leído abajo', true);
+    }
+  }
+
+  $('scanBtn').addEventListener('click', ()=> $('scanInput').click());
+
+  $('scanInput').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const btn = $('scanBtn');
+    const originalLabel = btn.textContent;
+    btn.textContent = 'Leyendo etiqueta…';
+    btn.disabled = true;
+    $('scanHint').textContent = 'Esto puede tardar unos segundos…';
+    $('ocrDebug').classList.add('hidden');
+    try{
+      await loadTesseract();
+      const processed = await preprocessImage(file);
+      const { data: { text } } = await Tesseract.recognize(processed, 'eng');
+      showOcrDebug(text);
+      parseLabelText(text);
+    }catch(err){
+      toast('No se pudo leer la etiqueta: ' + err.message, true);
+    }
+    btn.textContent = originalLabel;
+    btn.disabled = false;
+    $('scanHint').textContent = 'Toma una foto de la etiqueta — se llenan el PO y el código solos.';
+    e.target.value = '';
+  });
+
+  // ---------- Registrar tab ----------
+  function refreshDatalists(){
+    const codeList = $('codeList');
+    codeList.innerHTML = Object.keys(catalog).sort().map(c=>`<option value="${esc(c)}">${esc(catalog[c])}</option>`).join('');
+
+    const pos = new Set();
+    Object.keys(inventory).forEach(k=> pos.add(k.split('||')[1]));
+    log.forEach(l=> pos.add(l.po));
+    const poList = $('poList');
+    poList.innerHTML = [...pos].filter(Boolean).sort().map(p=>`<option value="${esc(p)}"></option>`).join('');
+  }
 
   function esc(s){
-    return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
-  function escAttr(s){ return esc(s); }
-
-  /* ---------- CALC ---------- */
-  function recalc(){
-    const anterior = parseFloat(document.getElementById('lecturaAnteriorInput')?.value);
-    const actual = parseFloat(document.getElementById('lecturaActualInput')?.value);
-    const precio = parseFloat(document.getElementById('precioInput')?.value);
-    const consumoEl = document.getElementById('consumoOut');
-    const totalEl = document.getElementById('totalOut');
-    if (isNaN(anterior) || isNaN(actual) || isNaN(precio)){
-      if (consumoEl) consumoEl.textContent = '0';
-      if (totalEl) totalEl.textContent = '$0.00';
-      return;
-    }
-    const consumo = actual - anterior;
-    const total = consumo * precio;
-    if (consumoEl) consumoEl.textContent = fmt(consumo) + (consumo<0 ? ' (revisar)' : '');
-    if (totalEl) totalEl.textContent = money(total);
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 
-  /* ---------- SAVE ---------- */
-  /* Guarda solo el nombre del inquilino al editarlo, sin necesidad de generar un recibo nuevo. */
-  async function guardarNombre(){
-    const numero = state.currentLocal;
-    if (!numero || numero === '__nuevo__') return; // un local nuevo se guarda hasta generar su primer recibo
-    if (!state.locales[numero]) return;
-    const nombreEl = document.getElementById('nombreInput');
-    const msgEl = document.getElementById('nombreMsg');
-    if (!nombreEl) return;
-    const nombre = nombreEl.value.trim();
-    if (nombre === (state.locales[numero].nombre || '')) return; // sin cambios, no hace falta guardar
-
-    if (msgEl) msgEl.textContent = 'Guardando nombre…';
-    const nuevosLocales = { ...state.locales, [numero]: { ...state.locales[numero], nombre } };
-    const ok = await safeSet(DATA_KEY, {
-      index: state.index, locales: nuevosLocales, historial: state.historial, config: state.config
-    }, false);
-    if (ok){
-      state.locales = nuevosLocales;
-      if (msgEl) msgEl.textContent = 'Nombre guardado ✓';
-    } else if (msgEl){
-      msgEl.textContent = 'No se pudo guardar el nombre.';
-    }
-  }
-
-  async function guardarRecibo(){
-    const btn = document.getElementById('guardarBtn');
-    const msgEl = document.getElementById('formMsg');
-    let numero = state.currentLocal;
-    if (numero === '__nuevo__'){
-      const nuevoInput = document.getElementById('nuevoLocalInput');
-      numero = (nuevoInput?.value || '').trim();
-      if (!numero){
-        msgEl.innerHTML = `<div class="msg err">Escribe el número o nombre del nuevo local.</div>`;
-        return;
-      }
-      if (state.locales[numero]){
-        msgEl.innerHTML = `<div class="msg err">Ese local ya existe. Selecciónalo de la lista.</div>`;
-        return;
-      }
-    }
-    if (!numero){
-      msgEl.innerHTML = `<div class="msg err">Selecciona un local primero.</div>`;
-      return;
-    }
-
-    const nombre = document.getElementById('nombreInput').value.trim();
-    const fecha = document.getElementById('fechaLecturaInput').value;
-    const lecturaAnterior = parseFloat(document.getElementById('lecturaAnteriorInput').value);
-    const lecturaActual = parseFloat(document.getElementById('lecturaActualInput').value);
-    const precioM3 = parseFloat(document.getElementById('precioInput').value);
-    const fechaLimite = document.getElementById('fechaLimiteInput').value;
-
-    if (isNaN(lecturaActual)){
-      msgEl.innerHTML = `<div class="msg err">Captura la lectura actual.</div>`;
-      return;
-    }
-    if (isNaN(precioM3)){
-      msgEl.innerHTML = `<div class="msg err">Captura el precio por m³.</div>`;
-      return;
-    }
-    const anteriorFinal = isNaN(lecturaAnterior) ? 0 : lecturaAnterior;
-    const consumo = lecturaActual - anteriorFinal;
-    const total = consumo * precioM3;
-
-    btn.disabled = true; btn.textContent = 'Guardando…';
-
-    const record = {
-      numero, nombre, direccion: DIRECCION_PLAZA,
-      ultimaLecturaActual: lecturaActual,
-      fechaUltimaLectura: fecha,
-      precioM3
-    };
-
-    const histEntry = {
-      fecha, lecturaAnterior: anteriorFinal, lecturaActual, consumo, precioM3, total, fechaLimite,
-      nombre,
-      guardadoEn: new Date().toISOString().slice(0,10)
-    };
-    const histArr = state.historial[numero] ? [...state.historial[numero]] : [];
-    histArr.push(histEntry);
-
-    const nuevoIndex = state.index.includes(numero) ? state.index : [...state.index, numero];
-    const nuevosLocales = { ...state.locales, [numero]: record };
-    const nuevoHistorial = { ...state.historial, [numero]: histArr };
-
-    const ok = await safeSet(DATA_KEY, {
-      index: nuevoIndex, locales: nuevosLocales, historial: nuevoHistorial, config: state.config
-    }, false);
-
-    btn.disabled = false; btn.textContent = 'Guardar y generar recibo';
-
-    if (ok){
-      state.index = nuevoIndex;
-      state.locales = nuevosLocales;
-      state.historial = nuevoHistorial;
-      state.currentLocal = numero;
-      state.lastReceipt = { ...histEntry, numero };
-      msgEl.innerHTML = `<div class="msg ok">Recibo guardado correctamente.</div>`;
-      document.getElementById('receiptWrap').innerHTML = renderReceipt(state.lastReceipt);
-      bindReceiptEvents();
+  $('codeInput').addEventListener('input', ()=>{
+    const code = $('codeInput').value.trim();
+    const preview = $('descPreview');
+    const box = $('newCodeBox');
+    if(!code){ preview.textContent=''; preview.className='desc-preview'; box.classList.add('hidden'); return; }
+    if(catalog[code] !== undefined){
+      preview.textContent = catalog[code];
+      preview.className = 'desc-preview match';
+      box.classList.add('hidden');
     } else {
-      const motivo = storageDisponible
-        ? 'Revisa tu conexión a internet y presiona "Guardar" de nuevo — tus datos capturados siguen aquí, no se perdieron.'
-        : 'Esta vista no tiene acceso al guardado permanente (mira el aviso arriba). Abre este archivo dentro del panel de Claude para poder guardar los recibos.';
-      msgEl.innerHTML = `<div class="msg err">No se pudo guardar. ${motivo}${lastStorageError ? `<br><span style="opacity:.7; font-family:var(--font-mono); font-size:11px;">Detalle técnico: ${esc(lastStorageError)}</span>` : ''}</div>`;
+      preview.textContent = 'Código nuevo — no está en el catálogo';
+      preview.className = 'desc-preview new';
+      box.classList.remove('hidden');
     }
+  });
+
+  $('qtyMinus').addEventListener('click', ()=>{ currentQty = Math.max(1, currentQty-1); $('qtyValue').textContent = currentQty; });
+  $('qtyPlus').addEventListener('click', ()=>{ currentQty += 1; $('qtyValue').textContent = currentQty; });
+
+  $('addBtn').addEventListener('click', async ()=>{
+    const po = $('poInput').value.trim();
+    const code = $('codeInput').value.trim();
+    if(!po){ toast('Escribe el número de PO', true); $('poInput').focus(); return; }
+    if(!code){ toast('Escribe o escanea el código', true); $('codeInput').focus(); return; }
+
+    if(catalog[code] === undefined){
+      const newDesc = $('newDescInput').value.trim();
+      if(!newDesc){ toast('Escribe la descripción del artículo nuevo', true); $('newDescInput').focus(); return; }
+      catalog[code] = newDesc;
+      await saveCatalog();
+    }
+
+    const key = code + '||' + po;
+    inventory[key] = (inventory[key] || 0) + currentQty;
+    await saveInventory();
+
+    log.unshift({id: Date.now()+'-'+Math.random().toString(36).slice(2,7), code, po, qty: currentQty, ts: Date.now()});
+    await saveLog();
+
+    toast(`+${currentQty} · ${code} · PO ${po}`);
+    $('codeInput').value=''; $('descPreview').textContent=''; $('descPreview').className='desc-preview';
+    $('newCodeBox').classList.add('hidden'); $('newDescInput').value='';
+    currentQty = 1; $('qtyValue').textContent = 1;
+    $('codeInput').focus();
+
+    refreshDatalists();
+    renderRecent();
+  });
+
+  async function undoEntry(id){
+    const idx = log.findIndex(l=>l.id===id);
+    if(idx === -1) return;
+    const entry = log[idx];
+    const key = entry.code + '||' + entry.po;
+    inventory[key] = (inventory[key]||0) - entry.qty;
+    if(inventory[key] <= 0) delete inventory[key];
+    log.splice(idx,1);
+    await saveInventory();
+    await saveLog();
+    toast('Movimiento deshecho');
+    renderRecent();
   }
 
-  /* ---------- BIND EVENTS ---------- */
-  function bindNuevoEvents(){
-    const sel = document.getElementById('localSelect');
-    if (sel) sel.addEventListener('change', (e)=>{
-      state.currentLocal = e.target.value || null;
-      state.lastReceipt = null;
-      render();
-    });
-    const nuevoInput = document.getElementById('nuevoLocalInput');
-    if (nuevoInput) nuevoInput.addEventListener('input', ()=>{ /* noop, just typing */ });
-
-    const nombreEl = document.getElementById('nombreInput');
-    if (nombreEl) nombreEl.addEventListener('change', guardarNombre);
-
-    ['lecturaAnteriorInput','lecturaActualInput','precioInput'].forEach(id=>{
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('input', recalc);
-    });
-    const fechaEl = document.getElementById('fechaLecturaInput');
-    if (fechaEl) fechaEl.addEventListener('change', ()=>{
-      const limiteEl = document.getElementById('fechaLimiteInput');
-      if (limiteEl) limiteEl.value = addDays(fechaEl.value, 24);
-    });
-    const guardarBtn = document.getElementById('guardarBtn');
-    if (guardarBtn) guardarBtn.addEventListener('click', guardarRecibo);
-    const limpiarBtn = document.getElementById('limpiarBtn');
-    if (limpiarBtn) limpiarBtn.addEventListener('click', ()=>{
-      state.currentLocal = null;
-      state.lastReceipt = null;
-      render();
-    });
-    recalc();
-    bindReceiptEvents();
-  }
-
-  function bindReceiptEvents(){
-    const printBtn = document.getElementById('printBtn');
-    if (printBtn) printBtn.addEventListener('click', ()=>{
-      if (state.lastReceipt) printReceiptData(state.lastReceipt);
-    });
-  }
-
-  function bindLocalesEvents(){
-    const filtro = document.getElementById('filtroInput');
-    if (filtro) filtro.addEventListener('input', ()=>{
-      document.getElementById('content').innerHTML = renderLocales();
-      bindLocalesEvents();
-    });
-    document.querySelectorAll('[data-local]').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        state.currentLocal = b.getAttribute('data-local');
-        state.tab = 'nuevo';
-        render();
-      });
-    });
-    document.querySelectorAll('[data-print]').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        const n = b.getAttribute('data-print');
-        const hist = state.historial[n] || [];
-        const last = hist[hist.length-1];
-        if (last) printReceiptData({ ...last, numero: n });
-      });
-    });
-    const printAllBtn = document.getElementById('printAllBtn');
-    if (printAllBtn) printAllBtn.addEventListener('click', printAllReceipts);
-
-    document.querySelectorAll('[data-edit]').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        state.editingLocal = b.getAttribute('data-edit');
-        document.getElementById('content').innerHTML = renderLocales();
-        bindLocalesEvents();
-      });
-    });
-    document.querySelectorAll('[data-cancel-edit]').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        state.editingLocal = null;
-        document.getElementById('content').innerHTML = renderLocales();
-        bindLocalesEvents();
-      });
-    });
-    document.querySelectorAll('[data-save-edit]').forEach(b=>{
-      b.addEventListener('click', async ()=>{
-        const oldNumero = b.getAttribute('data-save-edit');
-        b.disabled = true; b.textContent = 'Guardando…';
-        await guardarEdicionLocal(oldNumero);
-      });
-    });
-  }
-
-  // Permite renombrar el número de local y/o agregar o corregir el nombre del inquilino
-  // directamente desde la tabla de Locales, sin necesidad de capturar una lectura nueva.
-  async function guardarEdicionLocal(oldNumero){
-    const numInput = document.getElementById('editNumInput');
-    const nombreInput = document.getElementById('editNombreInput');
-    let newNumero = (numInput?.value || '').trim();
-    const nuevoNombre = (nombreInput?.value || '').trim();
-
-    if (!newNumero){
-      alert('El número de local no puede quedar vacío.');
+  function renderRecent(){
+    const box = $('recentList');
+    if(log.length === 0){
+      box.innerHTML = `<div class="empty-state"><div class="big">Sin movimientos</div>Registra tu primer artículo arriba.</div>`;
       return;
     }
-    if (newNumero !== oldNumero && state.locales[newNumero]){
-      alert('Ya existe un local con ese número/nombre. Elige otro.');
-      return;
-    }
-
-    const recordBase = state.locales[oldNumero] || { numero: oldNumero, direccion: DIRECCION_PLAZA, ultimaLecturaActual: 0, fechaUltimaLectura:'', precioM3: 30 };
-    const nuevoRecord = { ...recordBase, numero: newNumero, nombre: nuevoNombre };
-
-    const nuevosLocales = { ...state.locales };
-    const nuevoHistorial = { ...state.historial };
-    let nuevoIndex = [...state.index];
-
-    if (newNumero !== oldNumero){
-      delete nuevosLocales[oldNumero];
-      nuevoHistorial[newNumero] = nuevoHistorial[oldNumero] || [];
-      delete nuevoHistorial[oldNumero];
-      nuevoIndex = nuevoIndex.map(x => x === oldNumero ? newNumero : x);
-    }
-    nuevosLocales[newNumero] = nuevoRecord;
-
-    const ok = await safeSet(DATA_KEY, {
-      index: nuevoIndex, locales: nuevosLocales, historial: nuevoHistorial, config: state.config
-    }, false);
-
-    if (ok){
-      state.index = nuevoIndex;
-      state.locales = nuevosLocales;
-      state.historial = nuevoHistorial;
-      if (state.currentLocal === oldNumero) state.currentLocal = newNumero;
-      state.editingLocal = null;
-      document.getElementById('content').innerHTML = renderLocales();
-      bindLocalesEvents();
-    } else {
-      alert('No se pudo guardar el cambio. Intenta de nuevo.');
-      document.getElementById('content').innerHTML = renderLocales();
-      bindLocalesEvents();
-    }
+    box.innerHTML = log.slice(0,12).map((l,i)=>`
+      <div class="stub">
+        <div class="stub-row">
+          <div>
+            <div class="stub-code">${esc(l.code)}</div>
+            <div class="stub-desc">${esc(catalog[l.code] || 'Sin descripción')}</div>
+            <div class="stub-time">${fmtTime(l.ts)}</div>
+          </div>
+          <div style="text-align:right">
+            <span class="stub-po">PO ${esc(l.po)}</span><br>
+            <span class="stub-qty">+${l.qty}</span>
+          </div>
+        </div>
+        ${i===0 ? `<button class="undo-link" data-undo="${l.id}">deshacer</button>` : ''}
+      </div>
+    `).join('');
+    box.querySelectorAll('[data-undo]').forEach(b=>{
+      b.addEventListener('click', ()=> undoEntry(b.dataset.undo));
+    });
   }
 
-  function bindHistorialEvents(){
-    const sel = document.getElementById('historialSelect');
-    if (sel) sel.addEventListener('change', ()=>{
-      state.historialLocal = sel.value;
-      document.getElementById('content').innerHTML = renderHistorial();
-      bindHistorialEvents();
+  // ---------- Inventario tab ----------
+  function groupByCode(invObj){
+    const byCode = {};
+    Object.keys(invObj).forEach(key=>{
+      const [code, po] = key.split('||');
+      if(!byCode[code]) byCode[code] = {total:0, pos:{}};
+      byCode[code].total += invObj[key];
+      byCode[code].pos[po] = (byCode[code].pos[po]||0) + invObj[key];
     });
-    document.querySelectorAll('[data-reprint]').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        const idx = parseInt(b.getAttribute('data-reprint'), 10);
-        const entry = state._historialEntradas[idx];
-        if (entry) printReceiptData(entry);
+    return byCode;
+  }
+
+  function buildCardsHTML(byCode, codes){
+    return codes.map(code=>{
+      const data = byCode[code];
+      const poLines = Object.keys(data.pos).sort().map(po=>`
+        <div class="po-line">
+          <span class="po-tag">PO ${esc(po)}</span>
+          <span class="po-qty">${data.pos[po]}</span>
+          <button class="print-btn" data-code="${esc(code)}" data-po="${esc(po)}" data-qty="${data.pos[po]}">🖨️</button>
+        </div>
+      `).join('');
+      return `
+        <div class="art-card" data-code="${esc(code)}">
+          <div class="art-head">
+            <div>
+              <div class="art-code">${esc(code)}</div>
+              <div class="art-desc">${esc(catalog[code] || 'Sin descripción')}</div>
+            </div>
+            <div class="art-total">${data.total}<span class="chevron">▶</span></div>
+          </div>
+          <div class="po-breakdown">
+            ${poLines}
+            ${Object.keys(data.pos).length > 1 ? `<button class="print-all-btn" data-code="${esc(code)}">🖨️ Imprimir todas las PO de este artículo</button>` : ''}
+            <button class="print-all-btn report-btn" data-code="${esc(code)}">📄 Imprimir reporte de este artículo</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function attachCardHandlers(container, byCode){
+    container.querySelectorAll('.art-head').forEach(head=>{
+      head.addEventListener('click', ()=> head.parentElement.classList.toggle('open'));
+    });
+    container.querySelectorAll('.print-btn').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        printLabels(btn.dataset.code, [[btn.dataset.po, Number(btn.dataset.qty)]]);
+      });
+    });
+    container.querySelectorAll('.print-all-btn:not(.report-btn)').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const code = btn.dataset.code;
+        const pos = Object.entries(byCode[code].pos).sort((a,b)=> a[0]<b[0]?-1:1);
+        printLabels(code, pos);
+      });
+    });
+    container.querySelectorAll('.report-btn').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const code = btn.dataset.code;
+        printReport(`Reporte de artículo — ${code}`, byCode, [code]);
       });
     });
   }
 
-  /* ---------- MAIN RENDER ---------- */
-  function render(){
-    document.querySelectorAll('.tab-btn').forEach(b=>{
-      b.classList.toggle('active', b.dataset.tab === state.tab);
-    });
-    const content = document.getElementById('content');
-    if (state.tab === 'nuevo'){
-      content.innerHTML = renderNuevo();
-      bindNuevoEvents();
-      if (state.currentLocal === '__nuevo__'){
-        const wrap = document.getElementById('nuevoLocalWrap');
-        if (wrap) wrap.style.display = '';
-      }
-    } else if (state.tab === 'locales'){
-      content.innerHTML = renderLocales();
-      bindLocalesEvents();
-    } else {
-      content.innerHTML = renderHistorial();
-      bindHistorialEvents();
-    }
-  }
-
-  function bindTabs(){
-    document.querySelectorAll('.tab-btn').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        state.tab = b.dataset.tab;
-        render();
-      });
-    });
-    const periodoInput = document.getElementById('periodoInput');
-    periodoInput.value = state.config.periodoLabel || '';
-    periodoInput.addEventListener('change', async ()=>{
-      state.config.periodoLabel = periodoInput.value;
-      await persistAll();
-    });
-    document.getElementById('plazaNombre').textContent = state.config.nombrePlaza || 'Plaza Manitoba II';
-  }
-
-  let storageDisponible = true;
-
-  async function checarStorage(){
-    let claudeOk = false;
-    if (typeof window.storage !== 'undefined' && window.storage){
-      const testKey = '__storage_test__';
-      const testVal = String(Date.now());
-      try{
-        const setRes = await window.storage.set(testKey, testVal, false);
-        if (setRes){
-          const getRes = await window.storage.get(testKey, false);
-          claudeOk = !!(getRes && getRes.value === testVal);
-        }
-      }catch(e){
-        lastStorageError = (e && e.message) ? e.message : String(e);
-        console.error('Prueba de almacenamiento de Claude falló:', e);
-      }
-    }
-
-    if (claudeOk){
-      storageBackend = 'claude';
-      storageDisponible = true;
-      return;
-    }
-
-    // No estamos dentro del entorno de Claude (por ejemplo, exportado a GitHub/Vercel):
-    // usamos el almacenamiento local del navegador como respaldo automático.
-    if (lsAvailable()){
-      storageBackend = 'local';
-      storageDisponible = true;
-      document.getElementById('storageWarning').innerHTML = `
-        <div class="storage-info">
-          Guardando en el almacenamiento de este navegador. Los recibos que captures aquí quedarán guardados en este mismo navegador y dispositivo;
-          si abres la app en otro navegador o computadora, no verás estos mismos datos ahí.
-        </div>`;
-      return;
-    }
-
-    storageBackend = 'none';
-    storageDisponible = false;
-    document.getElementById('storageWarning').innerHTML = `
-      <div class="storage-warning">
-        <b>El guardado permanente no está disponible en esta vista ahora mismo.</b>
-        Puedes seguir capturando y calculando recibos normalmente, pero no se guardarán al recargar la página hasta que esto se resuelva.
-        ${lastStorageError ? `<br><span style="opacity:.7; font-family:var(--font-mono); font-size:11px;">Detalle técnico: ${lastStorageError.replace(/[<>]/g,'')}</span>` : ''}
+  function buildReportHTML(title, byCode, codes){
+    let html = `<div class="print-report"><h1>${esc(title)}</h1><div class="rep-meta">Impreso: ${new Date().toLocaleString('es-MX')}</div>`;
+    codes.forEach(code=>{
+      const data = byCode[code];
+      const rows = Object.keys(data.pos).sort().map(po=>`<tr><td>PO ${esc(po)}</td><td>${data.pos[po]}</td></tr>`).join('');
+      html += `<div class="rep-article">
+        <div class="rep-code">${esc(code)}</div>
+        <div class="rep-desc">${esc(catalog[code] || 'Sin descripción')}</div>
+        <table><thead><tr><th>PO</th><th>Cantidad</th></tr></thead><tbody>${rows}
+        <tr class="rep-total-row"><td>TOTAL</td><td>${data.total}</td></tr>
+        </tbody></table>
       </div>`;
+    });
+    html += `</div>`;
+    return html;
   }
 
-  async function init(){
-    document.getElementById('logoImg').src = LOGO_DATA_URI;
-    await checarStorage();
+  function printReport(title, byCode, codes){
+    if(codes.length === 0){ toast('No hay artículos para incluir en el reporte', true); return; }
+    $('printArea').innerHTML = buildReportHTML(title, byCode, codes.slice().sort());
+    setTimeout(()=> window.print(), 50);
+  }
+
+  // groups: array of [po, qty] — numbering resets per PO group
+  function printLabels(code, groups){
+    const desc = catalog[code] || 'Sin descripción';
+    let html = '';
+    groups.forEach(([po, qty])=>{
+      for(let i=1;i<=qty;i++){
+        html += `<div class="print-label">
+          <div class="pl-po">P.O ${esc(po)}</div>
+          <div class="pl-item">ITEM NO. ${esc(code)}</div>
+          <div class="pl-desc">DESCRIPTION: ${esc(desc)}</div>
+          <div class="pl-count">${i} DE ${qty}</div>
+        </div>`;
+      }
+    });
+    $('printArea').innerHTML = html;
+    setTimeout(()=> window.print(), 50);
+  }
+
+  function renderCloseBar(){
+    const count = Object.keys(inventory).length;
+    const pieces = Object.values(inventory).reduce((a,b)=>a+b,0);
+    const started = new Date(countStartedAt).toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+    $('closeInfo').textContent = `Conteo actual iniciado el ${started} · ${count} artículos · ${pieces} piezas`;
+  }
+
+  $('fullReportBtn').addEventListener('click', ()=>{
+    const byCode = groupByCode(inventory);
+    printReport('Reporte de inventario actual', byCode, Object.keys(byCode));
+  });
+
+  $('closeInvBtn').addEventListener('click', async ()=>{
+    if(Object.keys(inventory).length === 0){ toast('El inventario actual está vacío, no hay nada que cerrar', true); return; }
+    const defaultLabel = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+    const label = prompt('Nombre para este inventario cerrado:', defaultLabel);
+    if(label === null) return;
+    const finalLabel = label.trim() || defaultLabel;
+    if(!confirm(`¿Cerrar "${finalLabel}"? Se guarda en Historial y el conteo actual se vacía para empezar uno nuevo.`)) return;
+
+    const totalPieces = Object.values(inventory).reduce((a,b)=>a+b,0);
+    closedInventories.unshift({
+      id: Date.now()+'-'+Math.random().toString(36).slice(2,6),
+      label: finalLabel,
+      closedAt: Date.now(),
+      startedAt: countStartedAt,
+      inventory: {...inventory},
+      totalPieces
+    });
+    await saveClosedInventories();
+
+    inventory = {};
+    log = [];
+    countStartedAt = Date.now();
+    await saveInventory();
+    await saveLog();
+    await saveCountStart();
+
+    toast(`Inventario "${finalLabel}" cerrado y guardado`);
+    renderInventory();
+    renderCloseBar();
+    renderRecent();
+    refreshDatalists();
+  });
+
+  function renderInventory(){
+    const q = ($('searchInput').value||'').trim().toLowerCase();
+    const box = $('invList');
+    const byCode = groupByCode(inventory);
+
+    let codes = Object.keys(byCode);
+    if(q){
+      codes = codes.filter(c => c.toLowerCase().includes(q) || (catalog[c]||'').toLowerCase().includes(q));
+    }
+    codes.sort();
+
+    if(codes.length === 0){
+      box.innerHTML = `<div class="empty-state"><div class="big">Sin resultados</div>${Object.keys(byCode).length===0 ? 'Aún no hay artículos registrados.' : 'Ningún artículo coincide con tu búsqueda.'}</div>`;
+      return;
+    }
+
+    box.innerHTML = buildCardsHTML(byCode, codes);
+    attachCardHandlers(box, byCode);
+  }
+  $('searchInput').addEventListener('input', renderInventory);
+
+  // ---------- Historial tab ----------
+  function renderHistorial(){
+    const box = $('histList');
+    if(closedInventories.length === 0){
+      box.innerHTML = `<div class="empty-state"><div class="big">Sin inventarios cerrados</div>Cuando cierres un conteo desde la pestaña Inventario, aparecerá aquí.</div>`;
+      return;
+    }
+    box.innerHTML = closedInventories.map(entry=>{
+      const closedDate = new Date(entry.closedAt).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
+      const artCount = Object.keys(groupByCode(entry.inventory)).length;
+      return `
+        <div class="hist-card" data-id="${entry.id}">
+          <div class="hist-head">
+            <div>
+              <div class="hist-label">${esc(entry.label)}</div>
+              <div class="hist-meta">${closedDate} · ${artCount} artículos · ${entry.totalPieces} piezas</div>
+            </div>
+            <span class="chevron">▶</span>
+          </div>
+          <div class="hist-body"></div>
+        </div>
+      `;
+    }).join('');
+
+    box.querySelectorAll('.hist-card').forEach(card=>{
+      const entry = closedInventories.find(x=>x.id === card.dataset.id);
+      const body = card.querySelector('.hist-body');
+      let built = false;
+      card.querySelector('.hist-head').addEventListener('click', ()=>{
+        card.classList.toggle('open');
+        if(!built){
+          const byCode = groupByCode(entry.inventory);
+          const codes = Object.keys(byCode).sort();
+          body.innerHTML = `<button class="print-all-btn" data-fullrep="1" style="display:block;width:100%;text-align:center;padding:9px;margin-bottom:10px;">📄 Imprimir reporte completo de este conteo</button>` +
+            buildCardsHTML(byCode, codes) +
+            `<button class="hist-del" data-del="${entry.id}">Eliminar este registro del historial</button>`;
+          attachCardHandlers(body, byCode);
+          body.querySelector('[data-fullrep]').addEventListener('click', (e)=>{
+            e.stopPropagation();
+            printReport(`Reporte — ${entry.label}`, byCode, codes);
+          });
+          body.querySelector('[data-del]').addEventListener('click', async (e)=>{
+            e.stopPropagation();
+            if(!confirm(`¿Eliminar "${entry.label}" del historial? Esta acción no se puede deshacer.`)) return;
+            closedInventories = closedInventories.filter(x=>x.id !== entry.id);
+            await saveClosedInventories();
+            toast('Registro eliminado del historial');
+            renderHistorial();
+          });
+          built = true;
+        }
+      });
+    });
+  }
+
+  // ---------- Catalogo tab ----------
+  function renderCatalog(){
+    const q = ($('catSearchInput').value||'').trim().toLowerCase();
+    const box = $('catList');
+    let codes = Object.keys(catalog);
+    if(q) codes = codes.filter(c => c.toLowerCase().includes(q) || catalog[c].toLowerCase().includes(q));
+    codes.sort();
+
+    if(codes.length===0){
+      box.innerHTML = `<div class="empty-state"><div class="big">Catálogo vacío</div>Agrega artículos con el botón de abajo.</div>`;
+      return;
+    }
+
+    box.innerHTML = codes.map(code => `
+      <div class="cat-row" data-code="${esc(code)}">
+        <input class="code-in" value="${esc(code)}" data-role="code">
+        <input class="desc-in" value="${esc(catalog[code])}" data-role="desc">
+        <button class="del-btn" data-role="del">✕</button>
+      </div>
+    `).join('');
+
+    box.querySelectorAll('.cat-row').forEach(row=>{
+      const oldCode = row.dataset.code;
+      row.querySelector('[data-role=desc]').addEventListener('change', async (e)=>{
+        catalog[oldCode] = e.target.value.trim() || catalog[oldCode];
+        await saveCatalog();
+        toast('Descripción actualizada');
+      });
+      row.querySelector('[data-role=code]').addEventListener('change', async (e)=>{
+        const newCode = e.target.value.trim();
+        if(!newCode || newCode === oldCode) { e.target.value = oldCode; return; }
+        if(catalog[newCode] !== undefined){ toast('Ese código ya existe', true); e.target.value = oldCode; return; }
+        catalog[newCode] = catalog[oldCode];
+        delete catalog[oldCode];
+        Object.keys(inventory).forEach(k=>{
+          if(k.startsWith(oldCode+'||')){
+            inventory[k.replace(oldCode+'||', newCode+'||')] = inventory[k];
+            delete inventory[k];
+          }
+        });
+        await saveCatalog(); await saveInventory();
+        toast('Código actualizado');
+        renderCatalog();
+      });
+      row.querySelector('[data-role=del]').addEventListener('click', async ()=>{
+        if(!confirm(`¿Eliminar "${oldCode}" del catálogo? (El historial de inventario no se borra)`)) return;
+        delete catalog[oldCode];
+        await saveCatalog();
+        toast('Artículo eliminado del catálogo');
+        renderCatalog();
+      });
+    });
+  }
+  $('catSearchInput').addEventListener('input', renderCatalog);
+
+  $('addCatBtn').addEventListener('click', async ()=>{
+    const code = prompt('Código del nuevo artículo:');
+    if(!code) return;
+    const c = code.trim();
+    if(!c) return;
+    if(catalog[c] !== undefined){ toast('Ese código ya existe', true); return; }
+    const desc = prompt('Descripción:') || '';
+    catalog[c] = desc.trim();
+    await saveCatalog();
+    toast('Artículo agregado al catálogo');
+    renderCatalog();
+  });
+
+  // ---------- Sync polling ----------
+  async function pollSync(){
+    try{
+      const [c,i,l,ci] = await Promise.all([
+        window.storage.get('catalog', false),
+        window.storage.get('inventory', false),
+        window.storage.get('log', false),
+        window.storage.get('closedInventories', false)
+      ]);
+      const snap = (c?c.value:'') + '|' + (i?i.value:'') + '|' + (l?l.value:'') + '|' + (ci?ci.value:'');
+      const wasReady = dataReady;
+      if(!dataReady){
+        // Se recuperó la conexión: a partir de ahora lo que venga de storage SÍ es el
+        // estado real, así que confiamos en él y volvemos a permitir guardar.
+        dataReady = true;
+        hasEverSaved = true;
+        hideLoadError();
+      }
+      if(snap !== lastSnapshot || !wasReady){
+        lastSnapshot = snap;
+        catalog = c ? JSON.parse(c.value) : catalog;
+        inventory = i ? JSON.parse(i.value) : inventory;
+        log = l ? JSON.parse(l.value) : log;
+        closedInventories = ci ? JSON.parse(ci.value) : closedInventories;
+        refreshDatalists();
+        renderRecent();
+        if(!$('tab-inventario').classList.contains('hidden')){ renderInventory(); renderCloseBar(); }
+        if(!$('tab-catalogo').classList.contains('hidden')) renderCatalog();
+        if(!$('tab-historial').classList.contains('hidden')) renderHistorial();
+        if(!wasReady) toast('Conexión recuperada — tus datos guardados están al día');
+      }
+      $('syncStatus').textContent = 'sincronizado · ' + new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+    }catch(e){
+      $('syncStatus').textContent = 'sin conexión con el servidor de datos';
+      if(dataReady){
+        // Perdimos la conexión después de haber cargado bien: nos ponemos en modo
+        // seguro para no arriesgar un guardado con datos desactualizados.
+      }
+    }
+  }
+
+  $('retryLoadBtn').addEventListener('click', async ()=>{
+    $('retryLoadBtn').textContent = 'Reintentando…';
     await loadAll();
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('content').style.display = '';
-    bindTabs();
-    render();
-  }
+    refreshDatalists();
+    renderRecent();
+    renderCloseBar();
+    if(!$('tab-inventario').classList.contains('hidden')) renderInventory();
+    if(!$('tab-catalogo').classList.contains('hidden')) renderCatalog();
+    if(!$('tab-historial').classList.contains('hidden')) renderHistorial();
+    $('retryLoadBtn').textContent = 'Reintentar ahora';
+    if(dataReady) toast('Datos confirmados correctamente');
+  });
 
-  init();
+  // ---------- Init ----------
+  (async function init(){
+    $('syncStatus').textContent = 'cargando…';
+    await loadAll();
+    lastSnapshot = JSON.stringify(catalog) + '|' + JSON.stringify(inventory) + '|' + JSON.stringify(log) + '|' + JSON.stringify(closedInventories);
+    refreshDatalists();
+    renderRecent();
+    renderCloseBar();
+    $('syncStatus').textContent = dataReady ? 'listo' : 'sin confirmar — revisa tu conexión';
+    setInterval(pollSync, 4000);
+  })();
+
 })();
 </script>
 </body>
