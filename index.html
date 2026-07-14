@@ -307,7 +307,8 @@
     lastReceipt: null,
     historialLocal: '__todos__',
     editingLocal: null,
-    generales: { g1:{lecturaAnterior:0, lecturaActual:0}, g2:{lecturaAnterior:0, lecturaActual:0} }
+    generales: { g1:{lecturaAnterior:0, lecturaActual:0}, g2:{lecturaAnterior:0, lecturaActual:0} },
+    seleccionados: new Set()
   };
 
   function fmt(n){
@@ -637,9 +638,9 @@
 
   function printAllReceipts(){
     const filtro = document.getElementById('filtroInput')?.value || '';
-    const lista = getListaLocales(filtro).filter(({last})=> !!last);
+    const lista = getListaLocales(filtro).filter(({n, last})=> !!last && state.seleccionados.has(n));
     if (!lista.length){
-      alert('No hay recibos guardados para imprimir todavía.');
+      alert('No hay locales seleccionados con recibo guardado para imprimir. Marca las casillas de los locales que quieres imprimir.');
       return;
     }
     const area = document.getElementById('printArea');
@@ -663,8 +664,10 @@
 
     const filas = lista.map(({n, rec, hist})=>{
       const last = hist[hist.length-1];
+      const checked = state.seleccionados.has(n) ? 'checked' : '';
       if (state.editingLocal === n){
         return `<tr>
+          <td class="no-print"></td>
           <td colspan="2">
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <input type="text" id="editNumInput" value="${escAttr(n)}" style="max-width:110px;" placeholder="Número de local">
@@ -681,6 +684,7 @@
         </tr>`;
       }
       return `<tr>
+        <td class="no-print"><input type="checkbox" class="row-check" data-check="${escAttr(n)}" ${checked}></td>
         <td>${esc(n)}</td>
         <td>${esc(rec && rec.nombre ? rec.nombre : '—')}</td>
         <td class="num">${last ? fmt(last.lecturaActual) : '—'}</td>
@@ -693,6 +697,8 @@
         </td>
       </tr>`;
     }).join('');
+
+    const numSeleccionados = lista.filter(({n})=> state.seleccionados.has(n)).length;
 
     return `
     <div class="summary-bar">
@@ -713,14 +719,17 @@
           <input type="text" id="filtroInput" placeholder="Ej. 48 o nombre del inquilino">
         </div>
       </div>
-      <div class="actions no-print" style="margin-top:2px; margin-bottom:14px;">
-        <button class="btn btn-primary" id="printAllBtn">Imprimir todos los recibos</button>
+      <div class="actions no-print" style="margin-top:2px; margin-bottom:10px; align-items:center;">
+        <button class="btn btn-primary" id="printAllBtn">Imprimir seleccionados (${numSeleccionados})</button>
+        <button class="btn btn-ghost" id="selectAllBtn">Seleccionar todos</button>
+        <button class="btn btn-ghost" id="selectNoneBtn">Quitar selección</button>
       </div>
       <table>
         <thead><tr>
+          <th class="no-print"><input type="checkbox" id="headerCheck" ${numSeleccionados===lista.length && lista.length>0 ? 'checked':''}></th>
           <th>Local</th><th>Nombre</th><th class="num">Última lectura</th><th>Fecha</th><th class="num">Total último recibo</th><th class="no-print"></th>
         </tr></thead>
-        <tbody>${filas || `<tr><td colspan="6" class="empty">Sin locales que coincidan con la búsqueda.</td></tr>`}</tbody>
+        <tbody>${filas || `<tr><td colspan="7" class="empty">Sin locales que coincidan con la búsqueda.</td></tr>`}</tbody>
       </table>
     </div>`;
   }
@@ -1093,6 +1102,36 @@
         await guardarEdicionLocal(oldNumero);
       });
     });
+
+    document.querySelectorAll('[data-check]').forEach(chk=>{
+      chk.addEventListener('change', ()=>{
+        const n = chk.getAttribute('data-check');
+        if (chk.checked) state.seleccionados.add(n); else state.seleccionados.delete(n);
+        document.getElementById('content').innerHTML = renderLocales();
+        bindLocalesEvents();
+      });
+    });
+    const headerCheck = document.getElementById('headerCheck');
+    if (headerCheck) headerCheck.addEventListener('change', ()=>{
+      const filtro = document.getElementById('filtroInput')?.value || '';
+      const lista = getListaLocales(filtro);
+      if (headerCheck.checked){ lista.forEach(({n})=> state.seleccionados.add(n)); }
+      else { lista.forEach(({n})=> state.seleccionados.delete(n)); }
+      document.getElementById('content').innerHTML = renderLocales();
+      bindLocalesEvents();
+    });
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    if (selectAllBtn) selectAllBtn.addEventListener('click', ()=>{
+      state.index.forEach(n => state.seleccionados.add(n));
+      document.getElementById('content').innerHTML = renderLocales();
+      bindLocalesEvents();
+    });
+    const selectNoneBtn = document.getElementById('selectNoneBtn');
+    if (selectNoneBtn) selectNoneBtn.addEventListener('click', ()=>{
+      state.seleccionados.clear();
+      document.getElementById('content').innerHTML = renderLocales();
+      bindLocalesEvents();
+    });
   }
 
   // Permite renombrar el número de local y/o agregar o corregir el nombre del inquilino
@@ -1305,6 +1344,8 @@
     document.getElementById('logoImg').src = LOGO_DATA_URI;
     await checarStorage();
     await loadAll();
+    // Por defecto, todos los locales con al menos un recibo guardado quedan seleccionados para imprimir.
+    state.seleccionados = new Set(state.index.filter(n => (state.historial[n]||[]).length > 0));
     document.getElementById('loading').style.display = 'none';
     document.getElementById('content').style.display = '';
     bindTabs();
