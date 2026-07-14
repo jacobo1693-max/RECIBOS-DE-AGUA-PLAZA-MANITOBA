@@ -283,7 +283,8 @@
     config: { nombrePlaza:'Plaza Manitoba II', periodoLabel:'' },
     currentLocal: null,
     lastReceipt: null,
-    historialLocal: '__todos__'
+    historialLocal: '__todos__',
+    editingLocal: null
   };
 
   function fmt(n){
@@ -634,6 +635,23 @@
 
     const filas = lista.map(({n, rec, hist})=>{
       const last = hist[hist.length-1];
+      if (state.editingLocal === n){
+        return `<tr>
+          <td colspan="2">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <input type="text" id="editNumInput" value="${escAttr(n)}" style="max-width:110px;" placeholder="Número de local">
+              <input type="text" id="editNombreInput" value="${escAttr(rec && rec.nombre ? rec.nombre : '')}" style="flex:1; min-width:140px;" placeholder="Nombre del inquilino">
+            </div>
+          </td>
+          <td class="num">${last ? fmt(last.lecturaActual) : '—'}</td>
+          <td>${last ? fechaBonita(last.fecha) : '—'}</td>
+          <td class="num">${last ? money(last.total) : '—'}</td>
+          <td class="no-print" style="white-space:nowrap;">
+            <button class="row-btn" data-save-edit="${escAttr(n)}">Guardar</button>
+            <button class="row-btn" data-cancel-edit="1">Cancelar</button>
+          </td>
+        </tr>`;
+      }
       return `<tr>
         <td>${esc(n)}</td>
         <td>${esc(rec && rec.nombre ? rec.nombre : '—')}</td>
@@ -641,6 +659,7 @@
         <td>${last ? fechaBonita(last.fecha) : '—'}</td>
         <td class="num">${last ? money(last.total) : '—'}</td>
         <td class="no-print" style="white-space:nowrap;">
+          <button class="row-btn" data-edit="${escAttr(n)}">Editar</button>
           <button class="row-btn" data-local="${escAttr(n)}">Nuevo recibo</button>
           ${last ? `<button class="row-btn" data-print="${escAttr(n)}">Imprimir</button>` : ''}
         </td>
@@ -947,6 +966,79 @@
     });
     const printAllBtn = document.getElementById('printAllBtn');
     if (printAllBtn) printAllBtn.addEventListener('click', printAllReceipts);
+
+    document.querySelectorAll('[data-edit]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        state.editingLocal = b.getAttribute('data-edit');
+        document.getElementById('content').innerHTML = renderLocales();
+        bindLocalesEvents();
+      });
+    });
+    document.querySelectorAll('[data-cancel-edit]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        state.editingLocal = null;
+        document.getElementById('content').innerHTML = renderLocales();
+        bindLocalesEvents();
+      });
+    });
+    document.querySelectorAll('[data-save-edit]').forEach(b=>{
+      b.addEventListener('click', async ()=>{
+        const oldNumero = b.getAttribute('data-save-edit');
+        b.disabled = true; b.textContent = 'Guardando…';
+        await guardarEdicionLocal(oldNumero);
+      });
+    });
+  }
+
+  // Permite renombrar el número de local y/o agregar o corregir el nombre del inquilino
+  // directamente desde la tabla de Locales, sin necesidad de capturar una lectura nueva.
+  async function guardarEdicionLocal(oldNumero){
+    const numInput = document.getElementById('editNumInput');
+    const nombreInput = document.getElementById('editNombreInput');
+    let newNumero = (numInput?.value || '').trim();
+    const nuevoNombre = (nombreInput?.value || '').trim();
+
+    if (!newNumero){
+      alert('El número de local no puede quedar vacío.');
+      return;
+    }
+    if (newNumero !== oldNumero && state.locales[newNumero]){
+      alert('Ya existe un local con ese número/nombre. Elige otro.');
+      return;
+    }
+
+    const recordBase = state.locales[oldNumero] || { numero: oldNumero, direccion: DIRECCION_PLAZA, ultimaLecturaActual: 0, fechaUltimaLectura:'', precioM3: 30 };
+    const nuevoRecord = { ...recordBase, numero: newNumero, nombre: nuevoNombre };
+
+    const nuevosLocales = { ...state.locales };
+    const nuevoHistorial = { ...state.historial };
+    let nuevoIndex = [...state.index];
+
+    if (newNumero !== oldNumero){
+      delete nuevosLocales[oldNumero];
+      nuevoHistorial[newNumero] = nuevoHistorial[oldNumero] || [];
+      delete nuevoHistorial[oldNumero];
+      nuevoIndex = nuevoIndex.map(x => x === oldNumero ? newNumero : x);
+    }
+    nuevosLocales[newNumero] = nuevoRecord;
+
+    const ok = await safeSet(DATA_KEY, {
+      index: nuevoIndex, locales: nuevosLocales, historial: nuevoHistorial, config: state.config
+    }, false);
+
+    if (ok){
+      state.index = nuevoIndex;
+      state.locales = nuevosLocales;
+      state.historial = nuevoHistorial;
+      if (state.currentLocal === oldNumero) state.currentLocal = newNumero;
+      state.editingLocal = null;
+      document.getElementById('content').innerHTML = renderLocales();
+      bindLocalesEvents();
+    } else {
+      alert('No se pudo guardar el cambio. Intenta de nuevo.');
+      document.getElementById('content').innerHTML = renderLocales();
+      bindLocalesEvents();
+    }
   }
 
   function bindHistorialEvents(){
