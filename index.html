@@ -15,6 +15,7 @@
     --ink:#241B14;
     --ink-soft:#7A6A5C;
     --border:#E8DFD3;
+    --grid-blue:#1450A3;
     --ok:#2F8F5B;
     --danger:#C1443D;
     --font-display: Georgia, 'Times New Roman', serif;
@@ -120,9 +121,9 @@
   .msg.err{ background:#FBEAE8; color:var(--danger); }
 
   /* Table */
-  table{ width:100%; border-collapse:collapse; font-size:13.5px; border:1px solid var(--border); }
-  th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-soft); padding:8px 10px; border:1px solid var(--border); background:#F7F2EA;}
-  td{ padding:9px 10px; border:1px solid var(--border); }
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; border:3px solid var(--grid-blue); }
+  th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:#000; font-weight:800; padding:8px 10px; border:3px solid var(--grid-blue); background:#EAF1FB;}
+  td{ padding:9px 10px; border:3px solid var(--grid-blue); color:#000; font-weight:600; }
   tr:hover td{ background:#FBF6EF; }
   td.num, th.num{ text-align:right; font-family:var(--font-mono); }
   .row-btn{ background:none; border:1px solid var(--border); border-radius:6px; padding:4px 9px; font-size:12px; cursor:pointer; color:var(--primary); font-weight:600;}
@@ -153,10 +154,10 @@
   }
   .copy-badge.original{ background:#1F1D1B; color:#FFC07A; }
   .copy-badge.copia{ background:#EFE7DC; color:var(--ink-soft); border:1px solid var(--border); }
-  .receipt-rows{ width:100%; border-collapse:collapse; font-size:14px; margin-bottom:14px; border:1px solid var(--border); }
-  .receipt-rows td{ padding:8px 12px; border:1px solid var(--border); }
-  .receipt-rows .k{ color:var(--ink-soft); background:#F7F2EA; font-weight:600; width:48%; }
-  .receipt-rows .v{ font-weight:600; text-align:right; font-family:var(--font-mono); }
+  .receipt-rows{ width:100%; border-collapse:collapse; font-size:14px; margin-bottom:14px; border:3px solid var(--grid-blue); }
+  .receipt-rows td{ padding:8px 12px; border:3px solid var(--grid-blue); color:#000; }
+  .receipt-rows .k{ color:#000; background:#EAF1FB; font-weight:800; width:48%; }
+  .receipt-rows .v{ font-weight:800; text-align:right; font-family:var(--font-mono); color:#000; }
   .receipt-total{
     display:flex; justify-content:space-between; align-items:center; background:var(--primary-dark);
     border-radius:10px; padding:14px 18px; color:#fff; margin-top:6px;
@@ -479,6 +480,7 @@
         <div class="field">
           <label for="nombreInput">Nombre del local / inquilino</label>
           <input type="text" id="nombreInput" value="${escAttr(nombre)}" placeholder="Nombre a mostrar en el recibo">
+          <div class="hint" id="nombreMsg" style="min-height:14px;"></div>
         </div>
         <div class="field">
           <label for="fechaLecturaInput">Fecha de lectura</label>
@@ -773,6 +775,30 @@
   }
 
   /* ---------- SAVE ---------- */
+  /* Guarda solo el nombre del inquilino al editarlo, sin necesidad de generar un recibo nuevo. */
+  async function guardarNombre(){
+    const numero = state.currentLocal;
+    if (!numero || numero === '__nuevo__') return; // un local nuevo se guarda hasta generar su primer recibo
+    if (!state.locales[numero]) return;
+    const nombreEl = document.getElementById('nombreInput');
+    const msgEl = document.getElementById('nombreMsg');
+    if (!nombreEl) return;
+    const nombre = nombreEl.value.trim();
+    if (nombre === (state.locales[numero].nombre || '')) return; // sin cambios, no hace falta guardar
+
+    if (msgEl) msgEl.textContent = 'Guardando nombre…';
+    const nuevosLocales = { ...state.locales, [numero]: { ...state.locales[numero], nombre } };
+    const ok = await safeSet(DATA_KEY, {
+      index: state.index, locales: nuevosLocales, historial: state.historial, config: state.config
+    }, false);
+    if (ok){
+      state.locales = nuevosLocales;
+      if (msgEl) msgEl.textContent = 'Nombre guardado ✓';
+    } else if (msgEl){
+      msgEl.textContent = 'No se pudo guardar el nombre.';
+    }
+  }
+
   async function guardarRecibo(){
     const btn = document.getElementById('guardarBtn');
     const msgEl = document.getElementById('formMsg');
@@ -866,6 +892,9 @@
     });
     const nuevoInput = document.getElementById('nuevoLocalInput');
     if (nuevoInput) nuevoInput.addEventListener('input', ()=>{ /* noop, just typing */ });
+
+    const nombreEl = document.getElementById('nombreInput');
+    if (nombreEl) nombreEl.addEventListener('change', guardarNombre);
 
     ['lecturaAnteriorInput','lecturaActualInput','precioInput'].forEach(id=>{
       const el = document.getElementById(id);
