@@ -536,6 +536,7 @@
   function receiptMarkup(data, tipo){
     tipo = tipo || 'ORIGINAL';
     const badgeClass = tipo === 'ORIGINAL' ? 'original' : 'copia';
+    const nombreMostrar = data.nombre || (state.locales[data.numero] && state.locales[data.numero].nombre) || '';
     return `
       <div class="receipt-head">
         <div class="plaza-block">
@@ -553,7 +554,7 @@
       </div>
       <table class="receipt-rows">
         <tr><td class="k">Local</td><td class="v">${esc(data.numero)}</td></tr>
-        <tr><td class="k">Nombre</td><td class="v">${esc(data.nombre || '—')}</td></tr>
+        <tr><td class="k">Nombre</td><td class="v">${esc(nombreMostrar || '—')}</td></tr>
         <tr><td class="k">Fecha de lectura</td><td class="v">${fechaBonita(data.fecha)}</td></tr>
         <tr><td class="k">Lectura anterior</td><td class="v">${fmt(data.lecturaAnterior)}</td></tr>
         <tr><td class="k">Lectura actual</td><td class="v">${fmt(data.lecturaActual)}</td></tr>
@@ -869,6 +870,7 @@
 
     const histEntry = {
       fecha, lecturaAnterior: anteriorFinal, lecturaActual, consumo, precioM3, total, fechaLimite,
+      nombre,
       guardadoEn: new Date().toISOString().slice(0,10)
     };
     const histArr = state.historial[numero] ? [...state.historial[numero]] : [];
